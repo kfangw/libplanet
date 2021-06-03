@@ -144,6 +144,14 @@ To be released.
      -  `Swarm<T>.PeerStates`
  -  Return type of `RoutingTable.Neighbors()` became `IReadOnlyList<BoundPeer>`
     (was `IEnumerable<BoundPeer>`).  [[#1230], [#1271]]
+ -  Added `IStore.PutTxIdBlockHashIndex(Guid, TxId, BlockHash)` method.
+    [[#1294], [#1328]]
+ -  Added `IStore.HasTxIdBlockHashIndex(Guid, TxId)` method.
+    [[#1294], [#1328]]
+ -  Added `IStore.GetTxIdBlockHashIndex(Guid, TxId)` method.
+    [[#1294], [#1328]]
+ -  Added `IStore.DeleteTxIdBlockHashIndex(Guid, TxId)` method.
+    [[#1294], [#1328]]
 
 ### Backward-incompatible network protocol changes
 
@@ -268,8 +276,10 @@ To be released.
 [#1285]: https://github.com/planetarium/libplanet/issues/1285
 [#1287]: https://github.com/planetarium/libplanet/pull/1287
 [#1289]: https://github.com/planetarium/libplanet/pull/1289
+[#1294]: https://github.com/planetarium/libplanet/issues/1294
 [#1298]: https://github.com/planetarium/libplanet/pull/1298
 [#1325]: https://github.com/planetarium/libplanet/pull/1325
+[#1328]: https://github.com/planetarium/libplanet/pull/1328
 
 
 Version 0.11.1
