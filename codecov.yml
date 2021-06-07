@@ -16,6 +16,14 @@ parsers:
       method: no
       macro: no
 
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
 comment:
   require_changes: true
   layout: "diff, files"
