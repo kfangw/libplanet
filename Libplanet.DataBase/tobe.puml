@@ -8,45 +8,42 @@ interface DataBase {
     Iterator()
 }
 
-class RocksDB
-class LevelDB
-class BoltDB
-class MemDB
-
-DataBase <|-- RocksDB
-DataBase <|-- LevelDB
-DataBase <|-- BoltDB
-DataBase <|-- MemDB
-
-abstract class MultiDataBase {
-    DataBase Tx
-    DataBase Block
-}
 
 interface IStore {
-    DataBase db
     GetBlock()
     SetBlock()
     IterateBlock()
 }
 
-class MyNewStore{
+class Store {
+    DataBase db
 }
 
+class RocksDB
+class LevelDB
+class LiteDB
+class MemDB
+
+DataBase <|-- RocksDB
+DataBase <|-- LevelDB
+DataBase <|-- LiteDB
+DataBase <|-- MemDB
 class ConcreteRocksDB
 class ConcreteLevelDB
 
+IStore  <|-- Store
+Store *-- DataBase
 RocksDB *-- ConcreteRocksDB
 LevelDB *-- ConcreteLevelDB
+LiteDB *-- ConcreteLiteDB
 
-MultiDataBase "1" *-- "1..2" DataBase
-IStore <|-- MyNewStore
-MyNewStore *-- MultiDataBase
-IStore <|-- RocksDBStore
-RocksDBStore *-- ConcreteRocksDB
-IStore <|-- DefaultStore
-IStore <|-- MonoRocksDBStore
+interface IStateStore
+IStateStore <|-- TrieStateStore
+class TrieStateStore {
+    DataBase db
+}
 
+TrieStateStore *-- DataBase
 
 'interface IStore
 'class RocksDBStore
