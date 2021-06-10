@@ -9,4 +9,8 @@
       <PackageReference Include="Planetarium.RocksDbSharp" Version="6.2.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Libplanet\Libplanet.csproj" />
+    </ItemGroup>
+
 </Project>

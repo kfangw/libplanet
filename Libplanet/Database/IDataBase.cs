@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace Libplanet.DataBase
 {
     public interface IDataBase : IDisposable
@@ -8,6 +9,8 @@ namespace Libplanet.DataBase
         public bool Has(byte[] key);
 
         public void Set(byte[] key, byte[] value);
+
+        public void Put(byte[] key, byte[] value);
 
         public void Delete(byte[] key);
 

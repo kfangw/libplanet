@@ -43,6 +43,8 @@ namespace Libplanet.DataBase.Rocksdb
             return key.Length != 0 && _rocksDb.Get(key) != null ;
         }
 
+        public void Put(byte[] key, byte[] value) => Set(key, value);
+
         public void Set(byte[] key, byte[] value)
         {
             _rocksDb.Put(key, value);
