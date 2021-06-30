@@ -6,8 +6,8 @@ using Libplanet.Blockchain.Policies;
 namespace Libplanet.Blocks
 {
     /// <summary>
-    /// The exception that is thrown when a <see cref="Block{T}"/>'s
-    /// <see cref="Block{T}.BytesLength"/> (i.e., the length of bytes in its serialized format)
+    /// The exception that is thrown when a <see cref="Block"/>'s
+    /// <see cref="Block.BytesLength"/> (i.e., the length of bytes in its serialized format)
     /// is too long.
     /// </summary>
     [Serializable]
@@ -16,8 +16,8 @@ namespace Libplanet.Blocks
         /// <summary>
         /// Initializes a new instance of <see cref="InvalidBlockBytesLengthException"/> class.
         /// </summary>
-        /// <param name="blockBytesLength">The invalid <see cref="Block{T}"/>'s
-        /// <see cref="Block{T}.BytesLength"/>.  It is automatically included to the
+        /// <param name="blockBytesLength">The invalid <see cref="Block"/>'s
+        /// <see cref="Block.BytesLength"/>.  It is automatically included to the
         /// <see cref="Exception.Message"/> string.</param>
         /// <param name="maxBlockBytesLength">The maximum allowed length of bytes.  It is
         /// automatically included to the <see cref="Exception.Message"/> string.</param>

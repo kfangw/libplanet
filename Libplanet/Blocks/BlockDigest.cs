@@ -18,10 +18,10 @@ namespace Libplanet.Blocks
 
         /// <summary>
         /// Creates <see cref="BlockDigest"/> instance from <see cref="BlockHeader"/> and
-        /// <see cref="Transaction{T}"/> ids the <see cref="Block{T}"/> has.
+        /// <see cref="Transaction"/> ids the <see cref="Block"/> has.
         /// </summary>
-        /// <param name="header"><see cref="BlockHeader"/> of the <see cref="Block{T}"/>.</param>
-        /// <param name="txIds"><see cref="Transaction{T}"/> ids the <see cref="Block{T}"/> has.
+        /// <param name="header"><see cref="BlockHeader"/> of the <see cref="Block"/>.</param>
+        /// <param name="txIds"><see cref="Transaction"/> ids the <see cref="Block"/> has.
         /// </param>
         public BlockDigest(BlockHeader header, ImmutableArray<ImmutableArray<byte>> txIds)
         {
@@ -31,10 +31,10 @@ namespace Libplanet.Blocks
 
         /// <summary>
         /// Creates <see cref="BlockDigest"/> instance from
-        /// <see cref="Bencodex.Types.Dictionary"/> representation of the <see cref="Block{T}"/>.
+        /// <see cref="Bencodex.Types.Dictionary"/> representation of the <see cref="Block"/>.
         /// </summary>
         /// <param name="dict">
-        /// <see cref="Bencodex.Types.Dictionary"/> representation of the <see cref="Block{T}"/>.
+        /// <see cref="Bencodex.Types.Dictionary"/> representation of the <see cref="Block"/>.
         /// </param>
         public BlockDigest(Bencodex.Types.Dictionary dict)
         {

@@ -6,8 +6,8 @@ using Libplanet.Blockchain.Policies;
 namespace Libplanet.Blocks
 {
     /// <summary>
-    /// The exception that is thrown when a <see cref="Block{T}"/> has too many
-    /// <see cref="Block{T}.Transactions"/> (i.e., more than the number specified by
+    /// The exception that is thrown when a <see cref="Block"/> has too many
+    /// <see cref="Block.Transactions"/> (i.e., more than the number specified by
     /// <see cref="IBlockPolicy{T}.MaxTransactionsPerBlock"/>).
     /// </summary>
     [Serializable]

@@ -17,8 +17,7 @@ using Libplanet.Tx;
 namespace Libplanet.Blocks
 {
     [Equals]
-    public class Block<T> : IBlockExcerpt
-        where T : IAction, new()
+    public class Block : IBlockExcerpt
     {
         /// <summary>
         /// The most latest protocol version.
@@ -28,7 +27,7 @@ namespace Libplanet.Blocks
         private int _bytesLength;
 
         /// <summary>
-        /// Creates a <see cref="Block{T}"/> instance by manually filling all field values.
+        /// Creates a <see cref="Block"/> instance by manually filling all field values.
         /// For a more automated way, see also <see cref="Mine"/> method.
         /// </summary>
         /// <param name="index">The height of the block to create.  Goes to the <see cref="Index"/>.
@@ -66,7 +65,7 @@ namespace Libplanet.Blocks
             Address? miner,
             BlockHash? previousHash,
             DateTimeOffset timestamp,
-            IReadOnlyList<Transaction<T>> transactions,
+            IReadOnlyList<Transaction> transactions,
             BlockHash? preEvaluationHash = null,
             HashDigest<SHA256>? stateRootHash = null,
             int protocolVersion = CurrentProtocolVersion)
@@ -96,11 +95,11 @@ namespace Libplanet.Blocks
             // their tx nonces.  So transactions of the same signer should have the same sort key.
             // The following logic "flattens" multiple tx ids having the same signer into a single
             // txid by applying XOR between them.
-            IImmutableDictionary<Address, IImmutableSet<Transaction<T>>> signerTxs = Transactions
+            IImmutableDictionary<Address, IImmutableSet<Transaction>> signerTxs = Transactions
                 .GroupBy(tx => tx.Signer)
                 .ToImmutableDictionary(
                     g => g.Key,
-                    g => (IImmutableSet<Transaction<T>>)g.ToImmutableHashSet()
+                    g => (IImmutableSet<Transaction>)g.ToImmutableHashSet()
                 );
             IImmutableDictionary<Address, BigInteger> signerTxIds = signerTxs
                 .ToImmutableDictionary(
@@ -124,10 +123,10 @@ namespace Libplanet.Blocks
         }
 
         /// <summary>
-        /// Creates a <see cref="Block{T}"/> instance from its serialization.
+        /// Creates a <see cref="Block"/> instance from its serialization.
         /// </summary>
         /// <param name="dict">The <see cref="Bencodex.Types.Dictionary"/>
-        /// representation of <see cref="Block{T}"/> instance.
+        /// representation of <see cref="Block"/> instance.
         /// </param>
         public Block(Bencodex.Types.Dictionary dict)
             : this(new RawBlock(dict))
@@ -137,7 +136,7 @@ namespace Libplanet.Blocks
         // FIXME: Should this necessarily be a public constructor?
         // See also <https://github.com/planetarium/libplanet/issues/1146>.
         public Block(
-            Block<T> block,
+            Block block,
             HashDigest<SHA256>? stateRootHash
         )
             : this(
@@ -177,7 +176,7 @@ namespace Libplanet.Blocks
                     ? new HashDigest<SHA256>(rb.Header.TxHash)
                     : (HashDigest<SHA256>?)null,
                 rb.Transactions
-                    .Select(tx => Transaction<T>.Deserialize(tx.ToArray(), false))
+                    .Select(tx => Transaction.Deserialize(tx.ToArray(), false))
                     .ToList(),
                 rb.Header.PreEvaluationHash.Any()
                     ? new BlockHash(rb.Header.PreEvaluationHash)
@@ -200,7 +199,7 @@ namespace Libplanet.Blocks
             BlockHash? previousHash,
             DateTimeOffset timestamp,
             HashDigest<SHA256>? txHash,
-            IReadOnlyList<Transaction<T>> transactions,
+            IReadOnlyList<Transaction> transactions,
             BlockHash? preEvaluationHash,
             HashDigest<SHA256>? stateRootHash
         )
@@ -232,8 +231,8 @@ namespace Libplanet.Blocks
         public int ProtocolVersion { get; }
 
         /// <summary>
-        /// <see cref="Hash"/> is derived from a serialized <see cref="Block{T}"/>
-        /// after <see cref="Transaction{T}.Actions"/> are evaluated.
+        /// <see cref="Hash"/> is derived from a serialized <see cref="Block"/>
+        /// after <see cref="Transaction.Actions"/> are evaluated.
         /// </summary>
         /// <seealso cref="PreEvaluationHash"/>
         /// <seealso cref="StateRootHash"/>
@@ -283,7 +282,7 @@ namespace Libplanet.Blocks
         public HashDigest<SHA256>? TxHash { get; }
 
         [IgnoreDuringEquals]
-        public IReadOnlyList<Transaction<T>> Transactions { get; }
+        public IReadOnlyList<Transaction> Transactions { get; }
 
         /// <summary>
         /// The bytes length in its serialized format.
@@ -334,45 +333,45 @@ namespace Libplanet.Blocks
             }
         }
 
-        public static bool operator ==(Block<T> left, Block<T> right) =>
+        public static bool operator ==(Block left, Block right) =>
             Operator.Weave(left, right);
 
-        public static bool operator !=(Block<T> left, Block<T> right) =>
+        public static bool operator !=(Block left, Block right) =>
             Operator.Weave(left, right);
 
         /// <summary>
         /// Generate a block with given <paramref name="transactions"/>.
         /// </summary>
         /// <param name="index">Index of the block.</param>
-        /// <param name="difficulty">Difficulty to find the <see cref="Block{T}"/>
+        /// <param name="difficulty">Difficulty to find the <see cref="Block"/>
         /// <see cref="Nonce"/>.</param>
         /// <param name="previousTotalDifficulty">The total difficulty until the previous
-        /// <see cref="Block{T}"/>.</param>
+        /// <see cref="Block"/>.</param>
         /// <param name="miner">The <see cref="Address"/> of miner that mined the block.</param>
         /// <param name="previousHash">
         /// The <see cref="HashDigest{SHA256}"/> of previous block.
         /// </param>
         /// <param name="timestamp">The <see cref="DateTimeOffset"/> when mining started.</param>
-        /// <param name="transactions"><see cref="Transaction{T}"/>s that are going to be included
+        /// <param name="transactions"><see cref="Transaction"/>s that are going to be included
         /// in the block.</param>
         /// <param name="protocolVersion">The protocol version.</param>
         /// <param name="cancellationToken">
         /// A cancellation token used to propagate notification that this
         /// operation should be canceled.</param>
-        /// <returns>A <see cref="Block{T}"/> that mined.</returns>
-        public static Block<T> Mine(
+        /// <returns>A <see cref="Block"/> that mined.</returns>
+        public static Block Mine(
             long index,
             long difficulty,
             BigInteger previousTotalDifficulty,
             Address miner,
             BlockHash? previousHash,
             DateTimeOffset timestamp,
-            IEnumerable<Transaction<T>> transactions,
+            IEnumerable<Transaction> transactions,
             int protocolVersion = CurrentProtocolVersion,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var txs = transactions.OrderBy(tx => tx.Id).ToImmutableArray();
-            Block<T> MakeBlock(Nonce n) => new Block<T>(
+            Block MakeBlock(Nonce n) => new Block(
                 index,
                 difficulty,
                 previousTotalDifficulty + difficulty,
@@ -427,15 +426,15 @@ namespace Libplanet.Blocks
         }
 
         /// <summary>
-        /// Decodes a <see cref="Block{T}"/>'s
+        /// Decodes a <see cref="Block"/>'s
         /// <a href="https://bencodex.org/">Bencodex</a> representation.
         /// </summary>
         /// <param name="bytes">A <a href="https://bencodex.org/">Bencodex</a>
-        /// representation of a <see cref="Block{T}"/>.</param>
-        /// <returns>A decoded <see cref="Block{T}"/> object.</returns>
+        /// representation of a <see cref="Block"/>.</param>
+        /// <returns>A decoded <see cref="Block"/> object.</returns>
         /// <seealso cref="Serialize()"/>
         [Pure]
-        public static Block<T> Deserialize(byte[] bytes)
+        public static Block Deserialize(byte[] bytes)
         {
             IValue value = new Codec().Decode(bytes);
             if (!(value is Bencodex.Types.Dictionary dict))
@@ -445,7 +444,7 @@ namespace Libplanet.Blocks
                     $"{value.GetType()}");
             }
 
-            var block = new Block<T>(dict);
+            var block = new Block(dict);
             block._bytesLength = bytes.Length;
             return block;
         }
@@ -461,9 +460,9 @@ namespace Libplanet.Blocks
         public Bencodex.Types.Dictionary ToBencodex() => ToRawBlock().ToBencodex();
 
         /// <summary>
-        /// Gets <see cref="BlockDigest"/> representation of the <see cref="Block{T}"/>.
+        /// Gets <see cref="BlockDigest"/> representation of the <see cref="Block"/>.
         /// </summary>
-        /// <returns><see cref="BlockDigest"/> representation of the <see cref="Block{T}"/>.
+        /// <returns><see cref="BlockDigest"/> representation of the <see cref="Block"/>.
         /// </returns>
         public BlockDigest ToBlockDigest()
         {
@@ -480,7 +479,7 @@ namespace Libplanet.Blocks
         }
 
         /// <summary>
-        /// Validates this <see cref="Block{T}"/> and throws an appropriate exception
+        /// Validates this <see cref="Block"/> and throws an appropriate exception
         /// if not valid.
         /// </summary>
         /// <param name="currentTime">The current time to validate time-wise conditions.</param>
@@ -495,7 +494,7 @@ namespace Libplanet.Blocks
         /// <exception cref="InvalidBlockDifficultyException">Thrown when <see cref="Difficulty"/>
         /// is not properly configured.  For example, if it is too easy.</exception>
         /// <exception cref="InvalidBlockPreviousHashException">Thrown when
-        /// <see cref="PreviousHash"/> is invalid so that the <see cref="Block{T}"/>s are not
+        /// <see cref="PreviousHash"/> is invalid so that the <see cref="Block"/>s are not
         /// continuous.</exception>
         /// <exception cref="InvalidBlockNonceException">Thrown when
         /// <see cref="Nonce"/> does not satisfy the <see cref="Difficulty"/> level.</exception>
@@ -506,7 +505,7 @@ namespace Libplanet.Blocks
         {
             Header.Validate(currentTime);
 
-            foreach (Transaction<T> tx in Transactions)
+            foreach (Transaction tx in Transactions)
             {
                 tx.Validate();
             }
@@ -548,7 +547,7 @@ namespace Libplanet.Blocks
                 .Select(tx => tx.Serialize(true).ToImmutableArray()).ToImmutableArray());
         }
 
-        private static HashDigest<SHA256>? CalculateTxHashes(IEnumerable<Transaction<T>> txs)
+        private static HashDigest<SHA256>? CalculateTxHashes(IEnumerable<Transaction> txs)
         {
             if (!txs.Any())
             {

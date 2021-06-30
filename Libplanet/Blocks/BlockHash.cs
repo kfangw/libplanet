@@ -10,9 +10,9 @@ using Libplanet.Serialization;
 namespace Libplanet.Blocks
 {
     /// <summary>
-    /// A value type to represent block hash bytes which is derived <see cref="Block{T}"/> data.
+    /// A value type to represent block hash bytes which is derived <see cref="Block"/> data.
     /// </summary>
-    /// <seealso cref="Block{T}.Hash"/>
+    /// <seealso cref="Block.Hash"/>
     [Serializable]
     public readonly struct BlockHash : ISerializable, IEquatable<BlockHash>
     {

@@ -10,7 +10,7 @@ using Libplanet.Store.Trie;
 namespace Libplanet.Blocks
 {
     /// <summary>
-    /// Block header containing information about <see cref="Block{T}"/>s except transactions.
+    /// Block header containing information about <see cref="Block"/>s except transactions.
     /// </summary>
     public readonly struct BlockHeader : IBlockExcerpt
     {
@@ -69,7 +69,7 @@ namespace Libplanet.Blocks
         /// Goes to the <see cref="PreviousHash"/>.</param>
         /// <param name="txHash">The result of hashing the transactions the block has.
         /// Goes to the <see cref="TxHash"/>.</param>
-        /// <param name="hash">The hash of the <see cref="Block{T}"/>.
+        /// <param name="hash">The hash of the <see cref="Block"/>.
         /// Goes to the <see cref="Hash"/>.</param>
         /// <param name="preEvaluationHash">The hash derived from the block <em>except of</em>
         /// <paramref name="stateRootHash"/> (i.e., without action evaluation).
