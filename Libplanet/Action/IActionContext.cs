@@ -20,7 +20,7 @@ namespace Libplanet.Action
         Address Signer { get; }
 
         /// <summary>
-        /// <see cref="Transaction{T}.Id"/> of a transaction that an executed <see cref="IAction"/>
+        /// <see cref="Transaction.Id"/> of a transaction that an executed <see cref="IAction"/>
         /// belongs to.  This is <c>null</c> iff <see cref="BlockAction"/> is <c>true</c>.
         /// </summary>
         [Pure]
@@ -44,7 +44,7 @@ namespace Libplanet.Action
         /// &#x201c;rehearsal mode&#x201d;, that there is nothing
         /// in <see cref="PreviousStates"/>.
         /// </summary>
-        /// <seealso cref="Libplanet.Tx.Transaction{T}.Create"/>
+        /// <seealso cref="Libplanet.Tx.Transaction.Create"/>
         [Pure]
         bool Rehearsal { get; }
 
