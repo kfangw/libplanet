@@ -5,15 +5,15 @@ namespace Libplanet.Tx
 {
     /// <summary>
     /// Serves as the base class for exceptions thrown by
-    /// <see cref="Transaction{T}.Validate()"/>.
+    /// <see cref="Transaction.Validate()"/>.
     /// </summary>
     public abstract class InvalidTxException : Exception
     {
         /// <summary>
         /// Instantiates a new exception object with proper metadata.
         /// </summary>
-        /// <param name="txid">The invalid <see cref="Transaction{T}"/>'s
-        /// <see cref="Transaction{T}.Id"/>.  It is automatically included to
+        /// <param name="txid">The invalid <see cref="Transaction"/>'s
+        /// <see cref="Transaction.Id"/>.  It is automatically included to
         /// the <see cref="Exception.Message"/> string.</param>
         /// <param name="message">A descriptive error message for programmers.
         /// </param>
@@ -24,7 +24,7 @@ namespace Libplanet.Tx
         }
 
         /// <summary>
-        /// The <see cref="TxId"/> of the invalid <see cref="Transaction{T}"/>.
+        /// The <see cref="TxId"/> of the invalid <see cref="Transaction"/>.
         /// </summary>
         public TxId TxId { get; }
     }

@@ -4,7 +4,7 @@ using System;
 namespace Libplanet.Tx
 {
     /// <summary>
-    /// The exception that is thrown when a <see cref="Transaction{T}"/> does not follow the
+    /// The exception that is thrown when a <see cref="Transaction"/> does not follow the
     /// block policy.
     /// </summary>
     [Serializable]

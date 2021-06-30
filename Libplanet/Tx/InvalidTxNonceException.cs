@@ -6,9 +6,9 @@ using Libplanet.Blockchain;
 namespace Libplanet.Tx
 {
     /// <summary>
-    /// The exception that is thrown when the <see cref="Transaction{T}.Nonce"/>
+    /// The exception that is thrown when the <see cref="Transaction.Nonce"/>
     /// is different from <see cref="BlockChain{T}.GetNextTxNonce"/> result of
-    /// the <see cref="Transaction{T}.Signer"/>.
+    /// the <see cref="Transaction.Signer"/>.
     /// </summary>
     [Serializable]
     public sealed class InvalidTxNonceException : InvalidTxException
@@ -17,13 +17,13 @@ namespace Libplanet.Tx
         /// Initializes a new instance of the
         /// <see cref="InvalidTxNonceException"/> class.
         /// </summary>
-        /// <param name="txid">The invalid <see cref="Transaction{T}"/>'s
-        /// <see cref="Transaction{T}.Id"/>.  It is automatically included to
+        /// <param name="txid">The invalid <see cref="Transaction"/>'s
+        /// <see cref="Transaction.Id"/>.  It is automatically included to
         /// the <see cref="Exception.Message"/> string.</param>
         /// <param name="expectedNonce"><see cref="BlockChain{T}.GetNextTxNonce"/>
-        /// result of the <see cref="Transaction{T}.Signer"/>.</param>
+        /// result of the <see cref="Transaction.Signer"/>.</param>
         /// <param name="improperNonce">The actual
-        /// <see cref="Transaction{T}.Nonce"/>.</param>
+        /// <see cref="Transaction.Nonce"/>.</param>
         /// <param name="message">The message that describes the error.</param>
         [SuppressMessage(
             "Microsoft.StyleCop.CSharp.ReadabilityRules",
@@ -46,12 +46,12 @@ namespace Libplanet.Tx
 
         /// <summary>
         /// <see cref="BlockChain{T}.GetNextTxNonce"/> result of the
-        /// <see cref="Transaction{T}.Signer"/>.
+        /// <see cref="Transaction.Signer"/>.
         /// </summary>
         public long ExpectedNonce { get; }
 
         /// <summary>
-        /// The actual <see cref="Transaction{T}.Nonce"/>, which is improper.
+        /// The actual <see cref="Transaction.Nonce"/>, which is improper.
         /// </summary>
         public long ImproperNonce { get; }
     }
