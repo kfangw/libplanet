@@ -12,17 +12,14 @@ namespace Libplanet.Blockchain.Policies
     /// <summary>
     /// In-memory staged transactions.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match
-    /// to <see cref="BlockChain{T}"/>'s type parameter.</typeparam>
-    public class VolatileStagePolicy<T> : IStagePolicy<T>
-        where T : IAction, new()
+    public class VolatileStagePolicy : IStagePolicy
     {
-        private readonly ConcurrentDictionary<TxId, Transaction<T>?> _set;
+        private readonly ConcurrentDictionary<TxId, Transaction?> _set;
         private readonly List<TxId> _queue;
         private readonly ReaderWriterLockSlim _lock;
 
         /// <summary>
-        /// Creates a new <see cref="VolatileStagePolicy{T}"/> instance.
+        /// Creates a new <see cref="VolatileStagePolicy"/> instance.
         /// <para><see cref="Lifetime"/> is configured to 3 hours.</para>
         /// </summary>
         public VolatileStagePolicy()
@@ -31,14 +28,14 @@ namespace Libplanet.Blockchain.Policies
         }
 
         /// <summary>
-        /// Creates a new <see cref="VolatileStagePolicy{T}"/> instance.
+        /// Creates a new <see cref="VolatileStagePolicy"/> instance.
         /// </summary>
         /// <param name="lifetime">Volatilizes staged transactions older than this <paramref
         /// name="lifetime"/>.  See also the <see cref="Lifetime"/> property.</param>
         public VolatileStagePolicy(TimeSpan lifetime)
         {
             Lifetime = lifetime;
-            _set = new ConcurrentDictionary<TxId, Transaction<T>?>();
+            _set = new ConcurrentDictionary<TxId, Transaction?>();
             _queue = new List<TxId>();
             _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         }
@@ -49,8 +46,8 @@ namespace Libplanet.Blockchain.Policies
         /// </summary>
         public TimeSpan Lifetime { get; }
 
-        /// <inheritdoc cref="IStagePolicy{T}.Stage(BlockChain{T}, Transaction{T})"/>
-        public void Stage(BlockChain<T> blockChain, Transaction<T> transaction)
+        /// <inheritdoc cref="IStagePolicy.Stage(BlockChain, Transaction)"/>
+        public void Stage(BlockChain blockChain, Transaction transaction)
         {
             if (DateTimeOffset.UtcNow - Lifetime > transaction.Timestamp)
             {
@@ -88,27 +85,27 @@ namespace Libplanet.Blockchain.Policies
             }
         }
 
-        /// <inheritdoc cref="IStagePolicy{T}.Unstage(BlockChain{T}, TxId)"/>
-        public void Unstage(BlockChain<T> blockChain, TxId id)
+        /// <inheritdoc cref="IStagePolicy.Unstage(BlockChain, TxId)"/>
+        public void Unstage(BlockChain blockChain, TxId id)
         {
             _lock.EnterWriteLock();
             _queue.Remove(id);
             _lock.ExitWriteLock();
         }
 
-        /// <inheritdoc cref="IStagePolicy{T}.Ignore(BlockChain{T}, TxId)"/>
-        public void Ignore(BlockChain<T> blockChain, TxId id) =>
+        /// <inheritdoc cref="IStagePolicy.Ignore(BlockChain, TxId)"/>
+        public void Ignore(BlockChain blockChain, TxId id) =>
             _set.TryAdd(id, null);
 
-        /// <inheritdoc cref="IStagePolicy{T}.Ignores(BlockChain{T}, TxId)"/>
-        public bool Ignores(BlockChain<T> blockChain, TxId id) =>
-            (_set.TryGetValue(id, out Transaction<T>? tx) && tx is null)
+        /// <inheritdoc cref="IStagePolicy.Ignores(BlockChain, TxId)"/>
+        public bool Ignores(BlockChain blockChain, TxId id) =>
+            (_set.TryGetValue(id, out Transaction? tx) && tx is null)
             || Get(blockChain, id, includeUnstaged: true) is { };
 
-        /// <inheritdoc cref="IStagePolicy{T}.Get(BlockChain{T}, TxId, bool)"/>
-        public Transaction<T>? Get(BlockChain<T> blockChain, TxId id, bool includeUnstaged)
+        /// <inheritdoc cref="IStagePolicy.Get(BlockChain, TxId, bool)"/>
+        public Transaction? Get(BlockChain blockChain, TxId id, bool includeUnstaged)
         {
-            if (!_set.TryGetValue(id, out Transaction<T>? tx) || tx is null)
+            if (!_set.TryGetValue(id, out Transaction? tx) || tx is null)
             {
                 return null;
             }
@@ -139,8 +136,8 @@ namespace Libplanet.Blockchain.Policies
             return null;
         }
 
-        /// <inheritdoc cref="IStagePolicy{T}.Iterate(BlockChain{T})"/>
-        public IEnumerable<Transaction<T>> Iterate(BlockChain<T> blockChain)
+        /// <inheritdoc cref="IStagePolicy.Iterate(BlockChain)"/>
+        public IEnumerable<Transaction> Iterate(BlockChain blockChain)
         {
             _lock.EnterReadLock();
             TxId[] queue;
@@ -157,7 +154,7 @@ namespace Libplanet.Blockchain.Policies
             var expired = new List<TxId>();
             foreach (TxId txid in queue)
             {
-                if (_set.TryGetValue(txid, out Transaction<T>? tx) && !(tx is null))
+                if (_set.TryGetValue(txid, out Transaction? tx) && !(tx is null))
                 {
                     if (tx.Timestamp > exp)
                     {

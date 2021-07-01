@@ -111,7 +111,7 @@ namespace Libplanet.Store
         Transaction GetTransaction(TxId txid);
 
         /// <summary>
-        /// Puts a given <see cref="Transaction{T}"/> to the store.  If the same transaction
+        /// Puts a given <see cref="Transaction"/> to the store.  If the same transaction
         /// already exists in the store it does nothing.
         /// </summary>
         /// <param name="tx">A transaction to put into the store.</param>
@@ -213,7 +213,7 @@ namespace Libplanet.Store
         /// </summary>
         /// <param name="blockHash">The <see cref="Block.Hash"/> of the recorded transaction
         /// execution to retrieve.</param>
-        /// <param name="txid">The <see cref="Transaction{T}.Id"/> of the recorded transaction
+        /// <param name="txid">The <see cref="Transaction.Id"/> of the recorded transaction
         /// execution to retrieve.</param>
         /// <returns>The recorded transaction execution summary.  If it has been never recorded
         /// <c>null</c> is returned instead.</returns>
@@ -234,21 +234,21 @@ namespace Libplanet.Store
         /// <summary>
         /// Retrieves the <see cref="BlockHash"/> indexed by the <paramref name="txId"/>.
         /// </summary>
-        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction{T}"/>.</param>
+        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction"/>.</param>
         /// <returns><see cref="BlockHash"/> if the index exists. Otherwise <c>null</c>.</returns>
         BlockHash? GetFirstTxIdBlockHashIndex(TxId txId);
 
         /// <summary>
         /// Retrieves <see cref="BlockHash"/>es indexed by the <paramref name="txId"/>.
         /// </summary>
-        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction{T}"/>.</param>
+        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction"/>.</param>
         /// <returns><see cref="BlockHash"/>es if the index exists.</returns>
         IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
 
         /// <summary>
         /// Deletes the index for the <paramref name="txId"/> and <paramref name="blockHash"/>.
         /// </summary>
-        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction{T}"/>.</param>
+        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction"/>.</param>
         /// <param name="blockHash">The <see cref="BlockHash"/>
         /// of the <see cref="Block"/>.</param>.
         void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
@@ -269,11 +269,11 @@ namespace Libplanet.Store
         DateTimeOffset? GetBlockPerceivedTime(BlockHash blockHash);
 
         /// <summary>
-        /// Lists all <see cref="Address"/>es that have ever signed <see cref="Transaction{T}"/>,
-        /// and their corresponding <see cref="Transaction{T}"/> nonces.
+        /// Lists all <see cref="Address"/>es that have ever signed <see cref="Transaction"/>,
+        /// and their corresponding <see cref="Transaction"/> nonces.
         /// </summary>
         /// <param name="chainId">The ID of the chain to list <see cref="Address"/>es and their
-        /// <see cref="Transaction{T}"/> nonces.</param>
+        /// <see cref="Transaction"/> nonces.</param>
         /// <returns>Pairs of an <see cref="Address"/> and its tx nonce.  All nonces are greater
         /// than 0.  (If there are underlying entries having zero nonces these must be hidden.)
         /// </returns>
@@ -281,16 +281,16 @@ namespace Libplanet.Store
         IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId);
 
         /// <summary>
-        /// Gets <see cref="Transaction{T}"/> nonce of the
+        /// Gets <see cref="Transaction"/> nonce of the
         /// <paramref name="address"/>.
         /// </summary>
-        /// <param name="chainId">The ID of the chain to get <see cref="Transaction{T}"/> nonce.
+        /// <param name="chainId">The ID of the chain to get <see cref="Transaction"/> nonce.
         /// </param>
         /// <param name="address">The <see cref="Address"/> to get
-        /// <see cref="Transaction{T}"/> nonce.
+        /// <see cref="Transaction"/> nonce.
         /// </param>
-        /// <returns>A <see cref="Transaction{T}"/> nonce. If there is no
-        /// previous <see cref="Transaction{T}"/>, return 0.</returns>
+        /// <returns>A <see cref="Transaction"/> nonce. If there is no
+        /// previous <see cref="Transaction"/>, return 0.</returns>
         /// <seealso cref="IncreaseTxNonce(Guid, Address, long)"/>
         long GetTxNonce(Guid chainId, Address address);
 
@@ -299,7 +299,7 @@ namespace Libplanet.Store
         /// the tx nonce counter for <paramref name="signer"/>.
         /// </summary>
         /// <param name="chainId">The ID of the chain to increase
-        /// <see cref="Transaction{T}"/> nonce.</param>
+        /// <see cref="Transaction"/> nonce.</param>
         /// <param name="signer">The address of the account to increase tx nonce.</param>
         /// <param name="delta">How many to increase the counter.  A negative number decreases
         /// the counter.  1 by default.</param>
@@ -307,13 +307,13 @@ namespace Libplanet.Store
         void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1);
 
         /// <summary>
-        /// Determines whether the <see cref="IStore"/> contains <see cref="Transaction{T}"/>
+        /// Determines whether the <see cref="IStore"/> contains <see cref="Transaction"/>
         /// the specified <paramref name="txId"/>.
         /// </summary>
-        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction{T}"/>
+        /// <param name="txId">The <see cref="TxId"/> of the <see cref="Transaction"/>
         /// to check if it is in the <see cref="IStore"/>.</param>
         /// <returns>
-        /// <c>true</c> if the <see cref="IStore"/> contains <see cref="Transaction{T}"/>
+        /// <c>true</c> if the <see cref="IStore"/> contains <see cref="Transaction"/>
         /// with the specified <paramref name="txId"/>; otherwise, <c>false</c>.
         /// </returns>
         bool ContainsTransaction(TxId txId);
@@ -323,7 +323,7 @@ namespace Libplanet.Store
         long CountBlocks();
 
         /// <summary>
-        /// Forks <see cref="Transaction{T}"/> <see cref="Transaction{T}.Nonce"/>s from
+        /// Forks <see cref="Transaction"/> <see cref="Transaction.Nonce"/>s from
         /// <paramref name="sourceChainId"/> to
         /// <paramref name="destinationChainId"/>.
         /// </summary>

@@ -7,19 +7,16 @@ using Libplanet.Tx;
 namespace Libplanet.Blockchain.Policies
 {
     /// <summary>
-    /// A default implementation of <see cref="IBlockPolicy{T}"/> interface.
+    /// A default implementation of <see cref="IBlockPolicy"/> interface.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match
-    /// to <see cref="Block{T}"/>'s type parameter.</typeparam>
-    public class BlockPolicy<T> : IBlockPolicy<T>
-        where T : IAction, new()
+    public class BlockPolicy : IBlockPolicy
     {
         private readonly int _maxBlockBytes;
         private readonly int _maxGenesisBytes;
-        private readonly Func<Transaction<T>, BlockChain<T>, bool> _doesTransactionFollowPolicy;
+        private readonly Func<Transaction, BlockChain, bool> _doesTransactionFollowPolicy;
 
         /// <summary>
-        /// Creates a <see cref="BlockPolicy{T}"/> with configuring
+        /// Creates a <see cref="BlockPolicy"/> with configuring
         /// <see cref="BlockInterval"/> in milliseconds,
         /// <see cref="MinimumDifficulty"/> and
         /// <see cref="DifficultyBoundDivisor"/>.
@@ -53,7 +50,7 @@ namespace Libplanet.Blockchain.Policies
             int maxTransactionsPerBlock = 100,
             int maxBlockBytes = 100 * 1024,
             int maxGenesisBytes = 1024 * 1024,
-            Func<Transaction<T>, BlockChain<T>, bool> doesTransactionFollowPolicy = null,
+            Func<Transaction, BlockChain, bool> doesTransactionFollowPolicy = null,
             IComparer<BlockPerception> canonicalChainComparer = null
         )
             : this(
@@ -70,7 +67,7 @@ namespace Libplanet.Blockchain.Policies
         }
 
         /// <summary>
-        /// Creates a <see cref="BlockPolicy{T}"/> with configuring
+        /// Creates a <see cref="BlockPolicy"/> with configuring
         /// <see cref="BlockInterval"/>, <see cref="MinimumDifficulty"/> and
         /// <see cref="DifficultyBoundDivisor"/>.
         /// </summary>
@@ -103,7 +100,7 @@ namespace Libplanet.Blockchain.Policies
             int maxTransactionsPerBlock,
             int maxBlockBytes,
             int maxGenesisBytes,
-            Func<Transaction<T>, BlockChain<T>, bool> doesTransactionFollowPolicy = null,
+            Func<Transaction, BlockChain, bool> doesTransactionFollowPolicy = null,
             IComparer<BlockPerception> canonicalChainComparer = null
         )
         {
@@ -147,16 +144,16 @@ namespace Libplanet.Blockchain.Policies
         /// <inheritdoc/>
         public IAction BlockAction { get; }
 
-        /// <inheritdoc cref="IBlockPolicy{T}.MaxTransactionsPerBlock"/>
+        /// <inheritdoc cref="IBlockPolicy.MaxTransactionsPerBlock"/>
         public int MaxTransactionsPerBlock { get; }
 
         /// <summary>
-        /// An appropriate interval between consecutive <see cref="Block{T}"/>s.
+        /// An appropriate interval between consecutive <see cref="Block"/>s.
         /// It is usually from 20 to 30 seconds.
         /// <para>If a previous interval took longer than this
-        /// <see cref="GetNextBlockDifficulty(BlockChain{T})"/> method
-        /// raises the <see cref="Block{T}.Difficulty"/>.  If it took shorter
-        /// than this <see cref="Block{T}.Difficulty"/> is dropped.</para>
+        /// <see cref="GetNextBlockDifficulty(BlockChain)"/> method
+        /// raises the <see cref="Block.Difficulty"/>.  If it took shorter
+        /// than this <see cref="Block.Difficulty"/> is dropped.</para>
         /// </summary>
         public TimeSpan BlockInterval { get; }
 
@@ -168,24 +165,24 @@ namespace Libplanet.Blockchain.Policies
         private int DifficultyBoundDivisor { get; }
 
         /// <inheritdoc
-        /// cref="IBlockPolicy{T}.DoesTransactionFollowsPolicy(Transaction{T}, BlockChain{T})"/>
+        /// cref="IBlockPolicy.DoesTransactionFollowsPolicy(Transaction, BlockChain)"/>
         public virtual bool DoesTransactionFollowsPolicy(
-            Transaction<T> transaction,
-            BlockChain<T> blockChain)
+            Transaction transaction,
+            BlockChain blockChain)
         {
             return _doesTransactionFollowPolicy(transaction, blockChain);
         }
 
         /// <inheritdoc/>
         public virtual InvalidBlockException ValidateNextBlock(
-            BlockChain<T> blocks,
-            Block<T> nextBlock)
+            BlockChain blocks,
+            Block nextBlock)
         {
             return null;
         }
 
         /// <inheritdoc />
-        public virtual long GetNextBlockDifficulty(BlockChain<T> blocks)
+        public virtual long GetNextBlockDifficulty(BlockChain blocks)
         {
             long index = blocks.Count;
 

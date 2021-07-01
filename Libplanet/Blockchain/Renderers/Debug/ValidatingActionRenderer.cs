@@ -12,22 +12,19 @@ namespace Libplanet.Blockchain.Renderers.Debug
 {
     /// <summary>
     /// Validates if rendering events are in the correct order according to the documented automata
-    /// (see also the docs for <see cref="IRenderer{T}"/> and <see cref="IActionRenderer{T}"/>)
+    /// (see also the docs for <see cref="IRenderer"/> and <see cref="IActionRenderer"/>)
     /// using profiling-guided analysis.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="Libplanet.Blockchain.BlockChain{T}"/>'s type parameter.</typeparam>
-    public class ValidatingActionRenderer<T> : RecordingActionRenderer<T>
-        where T : IAction, new()
+    public class ValidatingActionRenderer : RecordingActionRenderer
     {
-        private readonly Action<InvalidRenderException<T>>? _onError;
+        private readonly Action<InvalidRenderException>? _onError;
 
         /// <summary>
-        /// Creates a new <see cref="ValidatingActionRenderer{T}"/> instance.
+        /// Creates a new <see cref="ValidatingActionRenderer"/> instance.
         /// </summary>
         /// <param name="onError">An optional event handler which is triggered when invalid
         /// render events occur.</param>
-        public ValidatingActionRenderer(Action<InvalidRenderException<T>>? onError = null)
+        public ValidatingActionRenderer(Action<InvalidRenderException>? onError = null)
         {
             _onError = onError;
         }
@@ -44,17 +41,17 @@ namespace Libplanet.Blockchain.Renderers.Debug
         /// The chain that publishes the render events.  More stricter validations are conducted
         /// if it's configured.
         /// </summary>
-        public BlockChain<T>? BlockChain { get; set; }
+        public BlockChain? BlockChain { get; set; }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorg(Block{T}, Block{T}, Block{T})"/>
-        public override void RenderReorg(Block<T> oldTip, Block<T> newTip, Block<T> branchpoint)
+        /// <inheritdoc cref="IRenderer.RenderReorg(Block, Block, Block)"/>
+        public override void RenderReorg(Block oldTip, Block newTip, Block branchpoint)
         {
             base.RenderReorg(oldTip, newTip, branchpoint);
             Validate();
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public override void UnrenderAction(
             IAction action,
             IActionContext context,
@@ -66,7 +63,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.UnrenderActionError(IAction, IActionContext, Exception)"/>
         public override void UnrenderActionError(
             IAction action,
             IActionContext context,
@@ -77,15 +74,15 @@ namespace Libplanet.Blockchain.Renderers.Debug
             Validate();
         }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderBlock(Block{T}, Block{T})"/>
-        public override void RenderBlock(Block<T> oldTip, Block<T> newTip)
+        /// <inheritdoc cref="IRenderer.RenderBlock(Block, Block)"/>
+        public override void RenderBlock(Block oldTip, Block newTip)
         {
             base.RenderBlock(oldTip, newTip);
             Validate();
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public override void RenderAction(
             IAction action,
             IActionContext context,
@@ -97,7 +94,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.RenderActionError(IAction, IActionContext, Exception)"/>
         public override void RenderActionError(
             IAction action,
             IActionContext context,
@@ -108,18 +105,18 @@ namespace Libplanet.Blockchain.Renderers.Debug
             Validate();
         }
 
-        /// <inheritdoc cref="IActionRenderer{T}.RenderBlockEnd(Block{T}, Block{T})"/>
-        public override void RenderBlockEnd(Block<T> oldTip, Block<T> newTip)
+        /// <inheritdoc cref="IActionRenderer.RenderBlockEnd(Block, Block)"/>
+        public override void RenderBlockEnd(Block oldTip, Block newTip)
         {
             base.RenderBlockEnd(oldTip, newTip);
             Validate();
         }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorgEnd(Block{T}, Block{T}, Block{T})"/>
+        /// <inheritdoc cref="IRenderer.RenderReorgEnd(Block, Block, Block)"/>
         public override void RenderReorgEnd(
-            Block<T> oldTip,
-            Block<T> newTip,
-            Block<T> branchpoint
+            Block oldTip,
+            Block newTip,
+            Block branchpoint
         )
         {
             base.RenderReorgEnd(oldTip, newTip, branchpoint);
@@ -129,20 +126,20 @@ namespace Libplanet.Blockchain.Renderers.Debug
         }
 
         private void ValidateReorgEnd(
-            Block<T> oldTip,
-            Block<T> newTip,
-            Block<T> branchpoint)
+            Block oldTip,
+            Block newTip,
+            Block branchpoint)
         {
-            if (!(BlockChain is BlockChain<T> chain))
+            if (!(BlockChain is BlockChain chain))
             {
                 return;
             }
 
-            IBlockPolicy<T> policy = chain.Policy;
+            IBlockPolicy policy = chain.Policy;
             IStore store = chain.Store;
 
             List<IAction> expectedUnrenderedActions = new List<IAction>();
-            Block<T> block = oldTip;
+            Block block = oldTip;
             while (!block.Equals(branchpoint))
             {
                 if (policy.BlockAction is IAction blockAction)
@@ -152,7 +149,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
 
                 expectedUnrenderedActions.AddRange(
                     block.Transactions.SelectMany(t => t.Actions).Cast<IAction>().Reverse());
-                block = store.GetBlock<T>(block.PreviousHash ??
+                block = store.GetBlock(block.PreviousHash ??
                     throw Error(Records, "Reorg occurred from the chain with different genesis."));
             }
 
@@ -166,7 +163,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 {
 #if NET472 || NET471 || NET47 || NET462 || NET461
                     // Even though .NET Framework 4.6.1 or higher supports .NET Standard 2.0,
-                    // versions lower than 4.8 lacks Enumerable.Append(IEnumerable<T>, T) method.
+                    // versions lower than 4.8 lacks Enumerable.Append(IEnumerable, T) method.
                     actions = actions.Concat(new IAction[] { blockAction });
 #else
 #pragma warning disable PC002
@@ -176,7 +173,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 }
 
                 expectedRenderedActionsBuffer = actions.Concat(expectedRenderedActionsBuffer);
-                block = store.GetBlock<T>(block.PreviousHash ??
+                block = store.GetBlock(block.PreviousHash ??
                     throw Error(Records, "Reorg occurred from the chain with different genesis."));
             }
 
@@ -185,12 +182,12 @@ namespace Libplanet.Blockchain.Renderers.Debug
             List<IAction> actualUnrenderedActions = new List<IAction>();
             foreach (var record in Records.Reverse())
             {
-                if (record is RenderRecord<T>.Reorg b && b.Begin)
+                if (record is RenderRecord.Reorg b && b.Begin)
                 {
                     break;
                 }
 
-                if (record is RenderRecord<T>.ActionBase a)
+                if (record is RenderRecord.ActionBase a)
                 {
                     if (a.Render)
                     {
@@ -276,14 +273,14 @@ namespace Libplanet.Blockchain.Renderers.Debug
         private void Validate()
         {
             var state = RenderState.Ready;
-            RenderRecord<T>.Reorg? reorgState = null;
-            RenderRecord<T>.Block? blockState = null;
+            RenderRecord.Reorg? reorgState = null;
+            RenderRecord.Block? blockState = null;
             long previousActionBlockIndex = -1L;
-            var records = new List<RenderRecord<T>>(Records.Count);
+            var records = new List<RenderRecord>(Records.Count);
 
             Exception BadRenderExc(string msg) => Error(records, msg);
 
-            foreach (RenderRecord<T> record in Records)
+            foreach (RenderRecord record in Records)
             {
                 records.Add(record);
                 switch (state)
@@ -296,15 +293,15 @@ namespace Libplanet.Blockchain.Renderers.Debug
                                 $"Unexpected reorg/block states: {reorgState}/{blockState}."
                             );
                         }
-                        else if (record is RenderRecord<T>.BlockBase blockBase && blockBase.Begin)
+                        else if (record is RenderRecord.BlockBase blockBase && blockBase.Begin)
                         {
-                            if (blockBase is RenderRecord<T>.Reorg reorg)
+                            if (blockBase is RenderRecord.Reorg reorg)
                             {
                                 reorgState = reorg;
                                 state = RenderState.Reorg;
                                 break;
                             }
-                            else if (blockBase is RenderRecord<T>.Block block)
+                            else if (blockBase is RenderRecord.Block block)
                             {
                                 blockState = block;
                                 state = RenderState.Block;
@@ -313,8 +310,8 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         }
 
                         throw BadRenderExc(
-                            $"Expected {nameof(IRenderer<T>.RenderReorg)} or " +
-                            $"{nameof(IRenderer<T>.RenderBlock)}."
+                            $"Expected {nameof(IRenderer.RenderReorg)} or " +
+                            $"{nameof(IRenderer.RenderBlock)}."
                         );
                     }
 
@@ -328,14 +325,14 @@ namespace Libplanet.Blockchain.Renderers.Debug
                                 $"Unexpected reorg/block states: {reorgState}/{blockState}."
                             );
                         }
-                        else if (record is RenderRecord<T>.Block block && block.Begin)
+                        else if (record is RenderRecord.Block block && block.Begin)
                         {
                             if (block.OldTip != reorgState.OldTip ||
                                 block.NewTip != reorgState.NewTip)
                             {
                                 throw BadRenderExc(
-                                    $"{nameof(IRenderer<T>.RenderReorg)} and " +
-                                    $"{nameof(IRenderer<T>.RenderBlock)} which follows it should " +
+                                    $"{nameof(IRenderer.RenderReorg)} and " +
+                                    $"{nameof(IRenderer.RenderBlock)} which follows it should " +
                                     "have the same oldTip and newTip."
                                 );
                             }
@@ -344,7 +341,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                             state = RenderState.Block;
                             break;
                         }
-                        else if (record is RenderRecord<T>.ActionBase actionBase &&
+                        else if (record is RenderRecord.ActionBase actionBase &&
                                  actionBase.Unrender)
                         {
                             long idx = actionBase.Context.BlockIndex;
@@ -365,9 +362,9 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         }
 
                         throw BadRenderExc(
-                            $"Expected {nameof(IRenderer<T>.RenderBlock)} or " +
-                            $"{nameof(IActionRenderer<T>.UnrenderAction)} or " +
-                            $"{nameof(IActionRenderer<T>.UnrenderActionError)}."
+                            $"Expected {nameof(IRenderer.RenderBlock)} or " +
+                            $"{nameof(IActionRenderer.UnrenderAction)} or " +
+                            $"{nameof(IActionRenderer.UnrenderActionError)}."
                         );
                     }
 
@@ -377,14 +374,14 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         {
                             throw BadRenderExc("Unexpected block state: null.");
                         }
-                        else if (record is RenderRecord<T>.Block block && block.End)
+                        else if (record is RenderRecord.Block block && block.End)
                         {
                             if (block.OldTip != blockState.OldTip ||
                                 block.NewTip != blockState.NewTip)
                             {
                                 throw BadRenderExc(
-                                    $"{nameof(IRenderer<T>.RenderBlock)} and " +
-                                    $"{nameof(IActionRenderer<T>.RenderBlockEnd)} which matches " +
+                                    $"{nameof(IRenderer.RenderBlock)} and " +
+                                    $"{nameof(IActionRenderer.RenderBlockEnd)} which matches " +
                                     "to it should have the same oldTip and newTip."
                                 );
                             }
@@ -395,11 +392,11 @@ namespace Libplanet.Blockchain.Renderers.Debug
                             blockState = null;
                             break;
                         }
-                        else if (record is RenderRecord<T>.ActionBase actionBase &&
+                        else if (record is RenderRecord.ActionBase actionBase &&
                                  actionBase.Render)
                         {
                             long idx = actionBase.Context.BlockIndex;
-                            if (reorgState is RenderRecord<T>.Reorg reorg)
+                            if (reorgState is RenderRecord.Reorg reorg)
                             {
                                 long minIdx = previousActionBlockIndex >= 0
                                     ? previousActionBlockIndex
@@ -426,9 +423,9 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         }
 
                         throw BadRenderExc(
-                            $"Expected {nameof(IActionRenderer<T>.RenderBlockEnd)} or " +
-                            $"{nameof(IActionRenderer<T>.RenderAction)} or " +
-                            $"{nameof(IActionRenderer<T>.RenderActionError)}"
+                            $"Expected {nameof(IActionRenderer.RenderBlockEnd)} or " +
+                            $"{nameof(IActionRenderer.RenderAction)} or " +
+                            $"{nameof(IActionRenderer.RenderActionError)}"
                         );
                     }
 
@@ -442,15 +439,15 @@ namespace Libplanet.Blockchain.Renderers.Debug
                                 $"Unexpected reorg/block states: {reorgState}/{blockState}."
                             );
                         }
-                        else if (record is RenderRecord<T>.Reorg reorg && reorg.End)
+                        else if (record is RenderRecord.Reorg reorg && reorg.End)
                         {
                             if (reorg.OldTip != reorgState.OldTip ||
                                 reorg.NewTip != reorgState.NewTip ||
                                 reorg.Branchpoint != reorgState.Branchpoint)
                             {
                                 throw BadRenderExc(
-                                    $"{nameof(IRenderer<T>.RenderReorgEnd)} should match to " +
-                                    $"{nameof(IActionRenderer<T>.RenderReorg)}; they should have " +
+                                    $"{nameof(IRenderer.RenderReorgEnd)} should match to " +
+                                    $"{nameof(IActionRenderer.RenderReorg)}; they should have " +
                                     "the same oldTip, newTip, and branchpoint."
                                 );
                             }
@@ -461,16 +458,16 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         }
 
                         throw BadRenderExc(
-                            $"Expected {nameof(IActionRenderer<T>.RenderReorgEnd)}."
+                            $"Expected {nameof(IActionRenderer.RenderReorgEnd)}."
                         );
                     }
                 }
             }
         }
 
-        private InvalidRenderException<T> Error(IReadOnlyList<RenderRecord<T>> records, string msg)
+        private InvalidRenderException Error(IReadOnlyList<RenderRecord> records, string msg)
         {
-            var exception = new InvalidRenderException<T>(records, msg);
+            var exception = new InvalidRenderException(records, msg);
             _onError?.Invoke(exception);
             return exception;
         }

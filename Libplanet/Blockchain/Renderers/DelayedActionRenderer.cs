@@ -12,14 +12,14 @@ using Libplanet.Store;
 namespace Libplanet.Blockchain.Renderers
 {
     /// <summary>
-    /// An <see cref="IActionRenderer{T}"/> version of <see cref="DelayedRenderer{T}"/>.
-    /// <para>Decorates an <see cref="IActionRenderer{T}"/> instance and delays the events until
+    /// An <see cref="IActionRenderer"/> version of <see cref="DelayedRenderer"/>.
+    /// <para>Decorates an <see cref="IActionRenderer"/> instance and delays the events until
     /// blocks are <em>confirmed</em> the certain number of blocks.  When blocks are recognized
     /// the delayed events relevant to these blocks are relayed to the decorated
-    /// <see cref="IActionRenderer{T}"/>.</para>
+    /// <see cref="IActionRenderer"/>.</para>
     /// </summary>
     /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="BlockChain{T}"/>'s type parameter.</typeparam>
+    /// <see cref="BlockChain"/>'s type parameter.</typeparam>
     /// <example>
     /// <code><![CDATA[
     /// IStore store = GetStore();
@@ -33,7 +33,7 @@ namespace Libplanet.Blockchain.Renderers
     ///    policy,
     ///    store,
     ///    confirmations: 3);
-    /// // You must pass the same policy & store to the BlockChain<T>() constructor:
+    /// // You must pass the same policy & store to the BlockChain() constructor:
     /// var chain = new BlockChain<ExampleAction>(
     ///    ...,
     ///    policy: policy,
@@ -41,8 +41,7 @@ namespace Libplanet.Blockchain.Renderers
     ///    renderers: new[] { actionRenderer });
     /// ]]></code>
     /// </example>
-    public class DelayedActionRenderer<T> : DelayedRenderer<T>, IActionRenderer<T>
-        where T : IAction, new()
+    public class DelayedActionRenderer : DelayedRenderer, IActionRenderer
     {
         private readonly ConcurrentDictionary<BlockHash, List<ActionEvaluation>>
             _bufferedActionRenders;
@@ -61,22 +60,22 @@ namespace Libplanet.Blockchain.Renderers
         private long _reorgResistantHeight;
 
         /// <summary>
-        /// Creates a new <see cref="DelayedRenderer{T}"/> instance decorating the given
+        /// Creates a new <see cref="DelayedRenderer"/> instance decorating the given
         /// <paramref name="renderer"/>.
         /// </summary>
         /// <param name="renderer">The renderer to decorate which has the <em>actual</em>
         /// implementations and receives delayed events.</param>
         /// <param name="canonicalChainComparer">The same canonical chain comparer to
-        /// <see cref="BlockChain{T}.Policy"/>.</param>
-        /// <param name="store">The same store to what <see cref="BlockChain{T}"/> uses.</param>
+        /// <see cref="BlockChain.Policy"/>.</param>
+        /// <param name="store">The same store to what <see cref="BlockChain"/> uses.</param>
         /// <param name="confirmations">The required number of confirmations to recognize a block.
-        /// See also the <see cref="DelayedRenderer{T}.Confirmations"/> property.</param>
+        /// See also the <see cref="DelayedRenderer.Confirmations"/> property.</param>
         /// <param name="reorgResistantHeight">Configures the height of blocks to maintain the
         /// <see cref="ActionEvaluation"/> buffer. Buffered <see cref="ActionEvaluation"/>s
         /// that belong to blocks older than this height from the tip are gone.
         /// If zero, which is a default value, is passed the buffer is not cleared.</param>
         public DelayedActionRenderer(
-            IActionRenderer<T> renderer,
+            IActionRenderer renderer,
             IComparer<BlockPerception> canonicalChainComparer,
             IStore store,
             int confirmations,
@@ -94,10 +93,10 @@ namespace Libplanet.Blockchain.Renderers
         /// The inner action renderer which has the <em>actual</em> implementations and receives
         /// delayed events.
         /// </summary>
-        public IActionRenderer<T> ActionRenderer { get; }
+        public IActionRenderer ActionRenderer { get; }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorg(Block{T}, Block{T}, Block{T})"/>
-        public override void RenderReorg(Block<T> oldTip, Block<T> newTip, Block<T> branchpoint)
+        /// <inheritdoc cref="IRenderer.RenderReorg(Block, Block, Block)"/>
+        public override void RenderReorg(Block oldTip, Block newTip, Block branchpoint)
         {
             base.RenderReorg(oldTip, newTip, branchpoint);
             _eventReceivingBlock = null;
@@ -111,8 +110,8 @@ namespace Libplanet.Blockchain.Renderers
             _localUnrenderBuffer.Value = new Dictionary<BlockHash, List<ActionEvaluation>>();
         }
 
-        /// <inheritdoc cref="DelayedRenderer{T}.RenderBlock(Block{T}, Block{T})"/>
-        public override void RenderBlock(Block<T> oldTip, Block<T> newTip)
+        /// <inheritdoc cref="DelayedRenderer.RenderBlock(Block, Block)"/>
+        public override void RenderBlock(Block oldTip, Block newTip)
         {
             Confirmed.TryAdd(oldTip.Hash, 0);
             if (_eventReceivingReorg is Reorg reorg &&
@@ -166,7 +165,7 @@ namespace Libplanet.Blockchain.Renderers
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public void UnrenderAction(
             IAction action,
             IActionContext context,
@@ -175,7 +174,7 @@ namespace Libplanet.Blockchain.Renderers
             DelayUnrenderingAction(new ActionEvaluation(action, context, nextStates));
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.UnrenderActionError(IAction, IActionContext, Exception)"/>
         public void UnrenderActionError(IAction action, IActionContext context, Exception exception)
         {
             var eval = new ActionEvaluation(action, context, context.PreviousStates, exception);
@@ -183,7 +182,7 @@ namespace Libplanet.Blockchain.Renderers
         }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public void RenderAction(
             IAction action,
             IActionContext context,
@@ -192,15 +191,15 @@ namespace Libplanet.Blockchain.Renderers
             DelayRenderingAction(new ActionEvaluation(action, context, nextStates));
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.RenderActionError(IAction, IActionContext, Exception)"/>
         public void RenderActionError(IAction action, IActionContext context, Exception exception)
         {
             var eval = new ActionEvaluation(action, context, context.PreviousStates, exception);
             DelayRenderingAction(eval);
         }
 
-        /// <inheritdoc cref="IActionRenderer{T}.RenderBlockEnd(Block{T}, Block{T})"/>
-        public void RenderBlockEnd(Block<T> oldTip, Block<T> newTip)
+        /// <inheritdoc cref="IActionRenderer.RenderBlockEnd(Block, Block)"/>
+        public void RenderBlockEnd(Block oldTip, Block newTip)
         {
             Dictionary<BlockHash, List<ActionEvaluation>>? buffer = _localRenderBuffer.Value;
             if (buffer is null)
@@ -274,8 +273,8 @@ namespace Libplanet.Blockchain.Renderers
                 _bufferedActionUnrenders);
         }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorgEnd(Block{T}, Block{T}, Block{T})"/>
-        public override void RenderReorgEnd(Block<T> oldTip, Block<T> newTip, Block<T> branchpoint)
+        /// <inheritdoc cref="IRenderer.RenderReorgEnd(Block, Block, Block)"/>
+        public override void RenderReorgEnd(Block oldTip, Block newTip, Block branchpoint)
         {
             base.RenderReorgEnd(oldTip, newTip, branchpoint);
             _eventReceivingReorg = null;
@@ -293,7 +292,7 @@ namespace Libplanet.Blockchain.Renderers
         /// </returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="upper"/> block's index
         /// is not greater than <paramref name="lower"/> block's index.</exception>
-        internal ImmutableArray<BlockHash> LocateBlockPath(Block<T> lower, Block<T> upper)
+        internal ImmutableArray<BlockHash> LocateBlockPath(Block lower, Block upper)
         {
             if (lower.Index >= upper.Index)
             {
@@ -307,9 +306,9 @@ namespace Libplanet.Blockchain.Renderers
             IEnumerable<BlockHash> Iterate()
             {
                 for (
-                    Block<T>? b = upper;
-                    b is Block<T> && b.Index > lower.Index;
-                    b = b.PreviousHash is { } prev ? Store.GetBlock<T>(prev) : null
+                    Block? b = upper;
+                    b is Block && b.Index > lower.Index;
+                    b = b.PreviousHash is { } prev ? Store.GetBlock(prev) : null
                 )
                 {
                     yield return b.Hash;
@@ -329,14 +328,14 @@ namespace Libplanet.Blockchain.Renderers
             return _bufferedActionUnrenders.Count;
         }
 
-        /// <inheritdoc cref="DelayedRenderer{T}.OnTipChanged(Block{T}, Block{T}, Block{T}?)"/>
+        /// <inheritdoc cref="DelayedRenderer.OnTipChanged(Block, Block, Block?)"/>
         protected override void OnTipChanged(
-            Block<T> oldTip,
-            Block<T> newTip,
-            Block<T>? branchpoint
+            Block oldTip,
+            Block newTip,
+            Block? branchpoint
         )
         {
-            if (branchpoint is Block<T>)
+            if (branchpoint is Block)
             {
                 Renderer.RenderReorg(oldTip, newTip, branchpoint);
             }
@@ -365,7 +364,7 @@ namespace Libplanet.Blockchain.Renderers
 
             ActionRenderer.RenderBlockEnd(oldTip, newTip);
 
-            if (branchpoint is Block<T>)
+            if (branchpoint is Block)
             {
                 Renderer.RenderReorgEnd(oldTip, newTip, branchpoint);
             }
@@ -522,16 +521,16 @@ namespace Libplanet.Blockchain.Renderers
         {
             public readonly ImmutableArray<BlockHash> Unrendered;
             public readonly ImmutableArray<BlockHash> Rendered;
-            public readonly Block<T> OldTip;
-            public readonly Block<T> NewTip;
-            public readonly Block<T> Branchpoint;
+            public readonly Block OldTip;
+            public readonly Block NewTip;
+            public readonly Block Branchpoint;
 
             public Reorg(
                 ImmutableArray<BlockHash> unrendered,
                 ImmutableArray<BlockHash> rendered,
-                Block<T> oldTip,
-                Block<T> newTip,
-                Block<T> branchpoint
+                Block oldTip,
+                Block newTip,
+                Block branchpoint
             )
             {
                 Unrendered = unrendered;

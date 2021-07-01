@@ -25,18 +25,15 @@ using static Libplanet.Blockchain.KeyConverters;
 namespace Libplanet.Blockchain
 {
     /// <summary>
-    /// A class have <see cref="Block{T}"/>s, <see cref="Transaction{T}"/>s, and the chain
+    /// A class have <see cref="Block"/>s, <see cref="Transaction"/>s, and the chain
     /// information.
     /// <para>In order to watch its state changes, implement <see cref="IRenderer{T}"/>
-    /// interface and pass it to the <see cref="BlockChain{T}(IBlockPolicy{T}, IStagePolicy{T},
-    /// IStore, IStateStore, Block{T}, IEnumerable{IRenderer{T}})"/> constructor.</para>
+    /// interface and pass it to the <see cref="BlockChain(IBlockPolicy{T}, IStagePolicy{T},
+    /// IStore, IStateStore, Block, IEnumerable{IRenderer{T}})"/> constructor.</para>
     /// </summary>
     /// <remarks>This object is guaranteed that it has at least one block, since it takes a genesis
     /// block when it's instantiated.</remarks>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match
-    /// to <see cref="Block{T}"/>'s type parameter.</typeparam>
-    public partial class BlockChain<T>
-        where T : IAction, new()
+    public partial class BlockChain
     {
         // FIXME: The _rwlock field should be private.
         [SuppressMessage(
@@ -48,28 +45,28 @@ namespace Libplanet.Blockchain
         private readonly ILogger _logger;
 
         /// <summary>
-        /// All <see cref="Block{T}"/>s in the <see cref="BlockChain{T}"/>
-        /// storage, including orphan <see cref="Block{T}"/>s.
-        /// Keys are <see cref="Block{T}.Hash"/>es and values are
-        /// their corresponding <see cref="Block{T}"/>s.
+        /// All <see cref="Block"/>s in the <see cref="BlockChain"/>
+        /// storage, including orphan <see cref="Block"/>s.
+        /// Keys are <see cref="Block.Hash"/>es and values are
+        /// their corresponding <see cref="Block"/>s.
         /// </summary>
-        private IDictionary<BlockHash, Block<T>> _blocks;
+        private IDictionary<BlockHash, Block> _blocks;
 
         /// <summary>
         /// Cached genesis block.
         /// </summary>
-        private Block<T> _genesis;
+        private Block _genesis;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BlockChain{T}"/> class.
+        /// Initializes a new instance of the <see cref="BlockChain"/> class.
         /// </summary>
         /// <param name="policy"><see cref="IBlockPolicy{T}"/> to use in the
-        /// <see cref="BlockChain{T}"/>.</param>
+        /// <see cref="BlockChain"/>.</param>
         /// <param name="stagePolicy">The staging policy to follow.</param>
-        /// <param name="store"><see cref="IStore"/> to store <see cref="Block{T}"/>s,
-        /// <see cref="Transaction{T}"/>s, and <see cref="BlockChain{T}"/> information.</param>
-        /// <param name="genesisBlock">The genesis <see cref="Block{T}"/> of
-        /// the <see cref="BlockChain{T}"/>, which is a part of the consensus.
+        /// <param name="store"><see cref="IStore"/> to store <see cref="Block"/>s,
+        /// <see cref="Transaction"/>s, and <see cref="BlockChain"/> information.</param>
+        /// <param name="genesisBlock">The genesis <see cref="Block"/> of
+        /// the <see cref="BlockChain"/>, which is a part of the consensus.
         /// If the given <paramref name="store"/> already contains the genesis block
         /// it checks if the existing genesis block and this argument is the same.
         /// If the <paramref name="store"/> has no genesis block yet this argument will
@@ -87,7 +84,7 @@ namespace Libplanet.Blockchain
             IStagePolicy<T> stagePolicy,
             IStore store,
             IStateStore stateStore,
-            Block<T> genesisBlock,
+            Block genesisBlock,
             IEnumerable<IRenderer<T>> renderers = null
         )
             : this(
@@ -108,7 +105,7 @@ namespace Libplanet.Blockchain
             IStore store,
             IStateStore stateStore,
             Guid id,
-            Block<T> genesisBlock,
+            Block genesisBlock,
             IEnumerable<IRenderer<T>> renderers
         )
             : this(
@@ -130,7 +127,7 @@ namespace Libplanet.Blockchain
             IStore store,
             IStateStore stateStore,
             Guid id,
-            Block<T> genesisBlock,
+            Block genesisBlock,
             bool inFork,
             IEnumerable<IRenderer<T>> renderers
         )
@@ -214,15 +211,15 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// An event which is invoked when <see cref="Tip"/> is changed.
         /// </summary>
-        private event EventHandler<(Block<T> OldTip, Block<T> NewTip)> TipChanged;
+        private event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
         /// <summary>
         /// The list of registered renderers listening the state changes.
         /// </summary>
         /// <remarks>
         /// Since this value is immutable, renderers cannot be registered after once a <see
-        /// cref="BlockChain{T}"/> object is instantiated; use <c>renderers</c> option of <see cref=
-        /// "BlockChain{T}(IBlockPolicy{T}, IStagePolicy{T}, IStore, IStateStore, Block{T},
+        /// cref="BlockChain"/> object is instantiated; use <c>renderers</c> option of <see cref=
+        /// "BlockChain(IBlockPolicy{T}, IStagePolicy{T}, IStore, IStateStore, Block,
         /// IEnumerable{IRenderer{T}})"/>
         /// constructor instead.
         /// </remarks>
@@ -245,10 +242,10 @@ namespace Libplanet.Blockchain
         public IStagePolicy<T> StagePolicy { get; set; }
 
         /// <summary>
-        /// The topmost <see cref="Block{T}"/> of the current blockchain.
+        /// The topmost <see cref="Block"/> of the current blockchain.
         /// Can be <c>null</c> if the blockchain is empty.
         /// </summary>
-        public Block<T> Tip
+        public Block Tip
         {
             get
             {
@@ -264,25 +261,25 @@ namespace Libplanet.Blockchain
         }
 
         /// <summary>
-        /// The first <see cref="Block{T}"/> in the <see cref="BlockChain{T}"/>.
+        /// The first <see cref="Block"/> in the <see cref="BlockChain"/>.
         /// </summary>
-        public Block<T> Genesis => _genesis ??= this[0];
+        public Block Genesis => _genesis ??= this[0];
 
         public Guid Id { get; private set; }
 
         /// <summary>
-        /// All <see cref="Block{T}.Hash"/>es in the current index.  The genesis block's hash goes
+        /// All <see cref="Block.Hash"/>es in the current index.  The genesis block's hash goes
         /// first, and the tip goes last.
         /// Returns a <see cref="long"/> integer that represents the number of elements in the
-        /// <see cref="BlockChain{T}"/>.
+        /// <see cref="BlockChain"/>.
         /// </summary>
         public IEnumerable<BlockHash> BlockHashes => IterateBlockHashes();
 
         /// <summary>
         /// Returns a <see cref="long"/> integer that represents the number of elements in the
-        /// <see cref="BlockChain{T}"/>.
+        /// <see cref="BlockChain"/>.
         /// </summary>
-        /// <returns>A number that represents how many elements in the <see cref="BlockChain{T}"/>.
+        /// <returns>A number that represents how many elements in the <see cref="BlockChain"/>.
         /// </returns>
         public long Count => Store.CountIndex(Id);
 
@@ -295,18 +292,18 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Gets the block corresponding to the <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">A number of index of <see cref="Block{T}"/>.</param>
+        /// <param name="index">A number of index of <see cref="Block"/>.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the given index of
-        /// <see cref="Block{T}"/> does not exist.</exception>
-        public Block<T> this[int index] => this[(long)index];
+        /// <see cref="Block"/> does not exist.</exception>
+        public Block this[int index] => this[(long)index];
 
         /// <summary>
         /// Gets the block corresponding to the <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">A number of index of <see cref="Block{T}"/>.</param>
+        /// <param name="index">A number of index of <see cref="Block"/>.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the given index of
-        /// <see cref="Block{T}"/> does not exist.</exception>
-        public Block<T> this[long index]
+        /// <see cref="Block"/> does not exist.</exception>
+        public Block this[long index]
         {
             get
             {
@@ -328,11 +325,11 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Gets the block corresponding to the <paramref name="blockHash"/>.
         /// </summary>
-        /// <param name="blockHash">A <see cref="Block{T}.Hash"/> of the <see cref="Block{T}"/> to
+        /// <param name="blockHash">A <see cref="Block.Hash"/> of the <see cref="Block"/> to
         /// get. </param>
-        /// <exception cref="KeyNotFoundException">Thrown when there is no <see cref="Block{T}"/>
+        /// <exception cref="KeyNotFoundException">Thrown when there is no <see cref="Block"/>
         /// with a given <paramref name="blockHash"/>.</exception>
-        public Block<T> this[in BlockHash blockHash]
+        public Block this[in BlockHash blockHash]
         {
             get
             {
@@ -369,7 +366,7 @@ namespace Libplanet.Blockchain
         /// It must match to <see cref="BlockPolicy{T}.BlockAction"/> of <see cref="Policy"/>.
         /// </param>
         /// <returns>The genesis block mined with parameters.</returns>
-        public static Block<T> MakeGenesisBlock(
+        public static Block MakeGenesisBlock(
             IEnumerable<T> actions = null,
             PrivateKey privateKey = null,
             DateTimeOffset? timestamp = null,
@@ -377,12 +374,12 @@ namespace Libplanet.Blockchain
         {
             privateKey = privateKey ?? new PrivateKey();
             actions = actions ?? ImmutableArray<T>.Empty;
-            IEnumerable<Transaction<T>> transactions = new[]
+            IEnumerable<Transaction> transactions = new[]
             {
-                Transaction<T>.Create(0, privateKey, null, actions, timestamp: timestamp),
+                Transaction.Create(0, privateKey, null, actions, timestamp: timestamp),
             };
 
-            Block<T> block = Block<T>.Mine(
+            Block block = Block.Mine(
                 0,
                 0,
                 0,
@@ -404,19 +401,19 @@ namespace Libplanet.Blockchain
             trie = trie.Set(actionEvaluationResult);
             var stateRootHash = trie.Commit(rehearsal: true).Hash;
 
-            return new Block<T>(
+            return new Block(
                 block,
                 stateRootHash);
         }
 
         /// <summary>
-        /// Determines whether the <see cref="BlockChain{T}"/> contains <see cref="Block{T}"/>
+        /// Determines whether the <see cref="BlockChain"/> contains <see cref="Block"/>
         /// the specified <paramref name="blockHash"/>.
         /// </summary>
-        /// <param name="blockHash">The <see cref="HashDigest{T}"/> of the <see cref="Block{T}"/> to
-        /// check if it is in the <see cref="BlockChain{T}"/>.</param>
+        /// <param name="blockHash">The <see cref="HashDigest{T}"/> of the <see cref="Block"/> to
+        /// check if it is in the <see cref="BlockChain"/>.</param>
         /// <returns>
-        /// <c>true</c> if the <see cref="BlockChain{T}"/> contains <see cref="Block{T}"/> with
+        /// <c>true</c> if the <see cref="BlockChain"/> contains <see cref="Block"/> with
         /// the specified <paramref name="blockHash"/>; otherwise, <c>false</c>.
         /// </returns>
         public bool ContainsBlock(BlockHash blockHash)
@@ -439,12 +436,12 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Gets the transaction corresponding to the <paramref name="txId"/>.
         /// </summary>
-        /// <param name="txId">A <see cref="TxId"/> of the <see cref="Transaction{T}"/> to get.
+        /// <param name="txId">A <see cref="TxId"/> of the <see cref="Transaction"/> to get.
         /// </param>
-        /// <returns><see cref="Transaction{T}"/> with <paramref name="txId"/>.</returns>
+        /// <returns><see cref="Transaction"/> with <paramref name="txId"/>.</returns>
         /// <exception cref="KeyNotFoundException">Thrown when there is no
-        /// <see cref="Transaction{T}"/> with a given <paramref name="txId"/>.</exception>
-        public Transaction<T> GetTransaction(TxId txId)
+        /// <see cref="Transaction"/> with a given <paramref name="txId"/>.</exception>
+        public Transaction GetTransaction(TxId txId)
         {
             if (StagePolicy.Get(this, txId, includeUnstaged: true) is { } tx)
             {
@@ -454,7 +451,7 @@ namespace Libplanet.Blockchain
             _rwlock.EnterReadLock();
             try
             {
-                if (Store.GetTransaction<T>(txId) is { } transaction)
+                if (Store.GetTransaction(txId) is { } transaction)
                 {
                     transaction.Validate();
                     return transaction;
@@ -470,13 +467,13 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Gets the state of the given <paramref name="address"/> in the
-        /// <see cref="BlockChain{T}"/> from <paramref name="offset"/>.
+        /// <see cref="BlockChain"/> from <paramref name="offset"/>.
         /// </summary>
         /// <param name="address">An <see cref="Address"/> to get the states of.</param>
         /// <param name="offset">The <see cref="HashDigest{T}"/> of the block to start finding
-        /// the state.  It will be The tip of the <see cref="BlockChain{T}"/> if it is <c>null</c>.
+        /// the state.  It will be The tip of the <see cref="BlockChain"/> if it is <c>null</c>.
         /// </param>
-        /// <param name="stateCompleter">When the <see cref="BlockChain{T}"/> instance does not
+        /// <param name="stateCompleter">When the <see cref="BlockChain"/> instance does not
         /// contain states dirty of the block which lastly updated states of a requested address,
         /// this delegate is called and its return value is used instead.
         /// <para><see cref="StateCompleters{T}.Recalculate"/> makes the incomplete states
@@ -502,14 +499,14 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Queries <paramref name="address"/>'s balance of the <paramref name="currency"/> in the
-        /// <see cref="BlockChain{T}"/> from <paramref name="offset"/>.
+        /// <see cref="BlockChain"/> from <paramref name="offset"/>.
         /// </summary>
         /// <param name="address">The owner <see cref="Address"/> to query.</param>
         /// <param name="currency">The currency type to query.</param>
         /// <param name="offset">The <see cref="HashDigest{T}"/> of the block to
         /// start finding the state. It will be the tip of the
-        /// <see cref="BlockChain{T}"/> if it is <c>null</c>.</param>
-        /// <param name="stateCompleter">When the <see cref="BlockChain{T}"/> instance does not
+        /// <see cref="BlockChain"/> if it is <c>null</c>.</param>
+        /// <param name="stateCompleter">When the <see cref="BlockChain"/> instance does not
         /// contain states dirty of the block which lastly updated states of a requested address,
         /// this delegate is called and its return value is used instead.
         /// <para><see cref="FungibleAssetStateCompleters{T}.Recalculate"/> makes the incomplete
@@ -545,12 +542,12 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Queries the recorded <see cref="TxExecution"/> for a successful or failed
-        /// <see cref="Transaction{T}"/> within a <see cref="Block{T}"/>.
+        /// <see cref="Transaction"/> within a <see cref="Block"/>.
         /// </summary>
-        /// <param name="blockHash">The <see cref="Block{T}.Hash"/> of the <see cref="Block{T}"/>
-        /// that the <see cref="Transaction{T}"/> is executed within.</param>
-        /// <param name="txid">The executed <see cref="Transaction{T}"/>'s
-        /// <see cref="Transaction{T}.Id"/>.</param>
+        /// <param name="blockHash">The <see cref="Block.Hash"/> of the <see cref="Block"/>
+        /// that the <see cref="Transaction"/> is executed within.</param>
+        /// <param name="txid">The executed <see cref="Transaction"/>'s
+        /// <see cref="Transaction.Id"/>.</param>
         /// <returns>The recorded <see cref="TxExecution"/>.  If the transaction has never been
         /// executed within the block, it returns <c>null</c> instead.</returns>
         public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) =>
@@ -558,14 +555,14 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Adds a <paramref name="block"/> to the end of this chain.
-        /// <para><see cref="Block{T}.Transactions"/> in the <paramref name="block"/> updates
+        /// <para><see cref="Block.Transactions"/> in the <paramref name="block"/> updates
         /// states and balances in the blockchain, and <see cref="TxExecution"/>s for
         /// transactions are recorded.</para>
         /// <para>Note that <see cref="Renderers"/> receive events right after the <paramref
         /// name="block"/> is confirmed (and thus all states reflect changes in the <paramref
         /// name="block"/>).</para>
         /// </summary>
-        /// <param name="block">A next <see cref="Block{T}"/>, which is mined,
+        /// <param name="block">A next <see cref="Block"/>, which is mined,
         /// to add.</param>
         /// <param name="stateCompleters">The strategy to complement incomplete block states which
         /// are required for action execution and rendering.
@@ -580,22 +577,22 @@ namespace Libplanet.Blockchain
         /// <exception cref="InvalidBlockException">Thrown when the given <paramref name="block"/>
         /// is invalid, in itself or according to the <see cref="Policy"/>.</exception>
         /// <exception cref="InvalidTxNonceException">Thrown when the
-        /// <see cref="Transaction{T}.Nonce"/> is different from
+        /// <see cref="Transaction.Nonce"/> is different from
         /// <see cref="GetNextTxNonce"/> result of the
-        /// <see cref="Transaction{T}.Signer"/>.</exception>
-        public void Append(Block<T> block, StateCompleterSet<T>? stateCompleters = null) =>
+        /// <see cref="Transaction.Signer"/>.</exception>
+        public void Append(Block block, StateCompleterSet<T>? stateCompleters = null) =>
             Append(block, DateTimeOffset.UtcNow, stateCompleters);
 
         /// <summary>
         /// Adds a <paramref name="block"/> to the end of this chain.
-        /// <para><see cref="Block{T}.Transactions"/> in the <paramref name="block"/> updates
+        /// <para><see cref="Block.Transactions"/> in the <paramref name="block"/> updates
         /// states and balances in the blockchain, and <see cref="TxExecution"/>s for
         /// transactions are recorded.</para>
         /// <para>Note that <see cref="Renderers"/> receive events right after the <paramref
         /// name="block"/> is confirmed (and thus all states reflect changes in the <paramref
         /// name="block"/>).</para>
         /// </summary>
-        /// <param name="block">A next <see cref="Block{T}"/>, which is mined,
+        /// <param name="block">A next <see cref="Block"/>, which is mined,
         /// to add.</param>
         /// <param name="currentTime">The current time.</param>
         /// <param name="stateCompleters">The strategy to complement incomplete block states which
@@ -611,11 +608,11 @@ namespace Libplanet.Blockchain
         /// <exception cref="InvalidBlockException">Thrown when the given <paramref name="block"/>
         /// is invalid, in itself or according to the <see cref="Policy"/>.</exception>
         /// <exception cref="InvalidTxNonceException">Thrown when the
-        /// <see cref="Transaction{T}.Nonce"/> is different from
+        /// <see cref="Transaction.Nonce"/> is different from
         /// <see cref="GetNextTxNonce"/> result of the
-        /// <see cref="Transaction{T}.Signer"/>.</exception>
+        /// <see cref="Transaction.Signer"/>.</exception>
         public void Append(
-            Block<T> block,
+            Block block,
             DateTimeOffset currentTime,
             StateCompleterSet<T>? stateCompleters = null
         ) =>
@@ -630,14 +627,14 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Adds a <paramref name="transaction"/> to the pending list so that
-        /// a next <see cref="Block{T}"/> to be mined contains the given
+        /// a next <see cref="Block"/> to be mined contains the given
         /// <paramref name="transaction"/>.
         /// </summary>
-        /// <param name="transaction"><see cref="Transaction{T}"/> to add to the pending list.
+        /// <param name="transaction"><see cref="Transaction"/> to add to the pending list.
         /// </param>
         /// <exception cref="InvalidTxException">Thrown when the given
         /// <paramref name="transaction"/> is invalid.</exception>
-        public void StageTransaction(Transaction<T> transaction)
+        public void StageTransaction(Transaction transaction)
         {
             if (!transaction.GenesisHash.Equals(Genesis.Hash))
             {
@@ -668,18 +665,18 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Removes a <paramref name="transaction"/> from the pending list.
         /// </summary>
-        /// <param name="transaction">A <see cref="Transaction{T}"/>
+        /// <param name="transaction">A <see cref="Transaction"/>
         /// to remove from the pending list.</param>
         /// <seealso cref="StageTransaction"/>
-        public void UnstageTransaction(Transaction<T> transaction) =>
+        public void UnstageTransaction(Transaction transaction) =>
             StagePolicy.Unstage(this, transaction.Id);
 
         /// <summary>
-        /// Gets next <see cref="Transaction{T}.Nonce"/> of the address.
+        /// Gets next <see cref="Transaction.Nonce"/> of the address.
         /// </summary>
         /// <param name="address">The <see cref="Address"/> from which to obtain the
-        /// <see cref="Transaction{T}.Nonce"/> value.</param>
-        /// <returns>The next <see cref="Transaction{T}.Nonce"/> value of the
+        /// <see cref="Transaction.Nonce"/> value.</param>
+        /// <returns>The next <see cref="Transaction.Nonce"/> value of the
         /// <paramref name="address"/>.</returns>
         public long GetNextTxNonce(Address address)
         {
@@ -711,7 +708,7 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Records and queries the <paramref name="perceivedTime"/> of the given
         /// <paramref name="blockExcerpt"/>.
-        /// <para>Although blocks have their own <see cref="Block{T}.Timestamp"/>, but these values
+        /// <para>Although blocks have their own <see cref="Block.Timestamp"/>, but these values
         /// are untrustworthy as they are arbitrarily determined by their miners.</para>
         /// <para>On the other hand, this method returns the subjective time according to the local
         /// node's perception.</para>
@@ -740,13 +737,13 @@ namespace Libplanet.Blockchain
 
 #pragma warning disable MEN003
         /// <summary>
-        /// Mines a next <see cref="Block{T}"/> using staged <see cref="Transaction{T}"/>s,
-        /// and then <see cref="Append(Block{T}, StateCompleterSet{T}?)"/> it to the chain
+        /// Mines a next <see cref="Block"/> using staged <see cref="Transaction"/>s,
+        /// and then <see cref="Append(Block, StateCompleterSet{T}?)"/> it to the chain
         /// (unless the <paramref name="append"/> option is turned off).
         /// </summary>
         /// <param name="miner">The <see cref="Address"/> of miner that mined the block.</param>
         /// <param name="currentTime">The <see cref="DateTimeOffset"/> when mining started.</param>
-        /// <param name="append">Whether to <see cref="Append(Block{T}, StateCompleterSet{T}?)"/>
+        /// <param name="append">Whether to <see cref="Append(Block, StateCompleterSet{T}?)"/>
         /// the mined block.  Turned on by default.</param>
         /// <param name="maxTransactions">The maximum number of transactions that a block can
         /// accept.  This value must be greater than 0, and less than or equal to
@@ -759,10 +756,10 @@ namespace Libplanet.Blockchain
         /// A cancellation token used to propagate notification that this
         /// operation should be canceled.
         /// </param>
-        /// <returns>An awaitable task with a <see cref="Block{T}"/> that is mined.</returns>
+        /// <returns>An awaitable task with a <see cref="Block"/> that is mined.</returns>
         /// <exception cref="OperationCanceledException">Thrown when
-        /// <see cref="BlockChain{T}.Tip"/> is changed while mining.</exception>
-        public async Task<Block<T>> MineBlock(
+        /// <see cref="BlockChain.Tip"/> is changed while mining.</exception>
+        public async Task<Block> MineBlock(
             Address miner,
             DateTimeOffset currentTime,
             bool append = true,
@@ -773,7 +770,7 @@ namespace Libplanet.Blockchain
             using var cts = new CancellationTokenSource();
             using CancellationTokenSource cancellationTokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-            void WatchTip(object target, (Block<T> OldTip, Block<T> NewTip) tip) => cts.Cancel();
+            void WatchTip(object target, (Block OldTip, Block NewTip) tip) => cts.Cancel();
             TipChanged += WatchTip;
 
             maxTransactions = Math.Max(
@@ -800,20 +797,20 @@ namespace Libplanet.Blockchain
                 procId
             );
 
-            ImmutableArray<Transaction<T>> stagedTransactions = ListStagedTransactions();
+            ImmutableArray<Transaction> stagedTransactions = ListStagedTransactions();
             _logger.Debug(
                 "There are {Transactions} staged transactions.",
                 stagedTransactions.Length
             );
 
-            var transactionsToMine = new List<Transaction<T>>();
+            var transactionsToMine = new List<Transaction>();
             int i = 0;
 
             // FIXME: The tx collection timeout should be configurable.
             DateTimeOffset timeout = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(4);
 
             // Makes an empty block to estimate the length of bytes without transactions.
-            var estimatedBytes = new Block<T>(
+            var estimatedBytes = new Block(
                 index: index,
                 difficulty: difficulty,
                 totalDifficulty: Tip.TotalDifficulty,
@@ -821,14 +818,14 @@ namespace Libplanet.Blockchain
                 miner: miner,
                 previousHash: prevHash,
                 timestamp: currentTime,
-                transactions: new Transaction<T>[0]
+                transactions: new Transaction[0]
             ).BytesLength;
             int maxBlockBytes = Math.Max(Policy.GetMaxBlockBytes(index), 1);
             var skippedSigners = new HashSet<Address>();
             var storedNonces = new Dictionary<Address, long>();
             var nextNonces = new Dictionary<Address, long>();
 
-            foreach (Transaction<T> tx in stagedTransactions)
+            foreach (Transaction tx in stagedTransactions)
             {
                 // We don't care about nonce ordering here because `.ListStagedTransactions()`
                 // returns already ordered transactions by its nonce.
@@ -949,11 +946,11 @@ namespace Libplanet.Blockchain
                 stagedTransactions.Length
             );
 
-            Block<T> block;
+            Block block;
             try
             {
                 block = await Task.Run(
-                    () => Block<T>.Mine(
+                    () => Block.Mine(
                         index: index,
                         difficulty: difficulty,
                         previousTotalDifficulty: Tip.TotalDifficulty,
@@ -989,7 +986,7 @@ namespace Libplanet.Blockchain
                 try
                 {
                     SetStates(block, actionEvaluations);
-                    block = new Block<T>(block, trieStateStore.GetRootHash(block.Hash));
+                    block = new Block(block, trieStateStore.GetRootHash(block.Hash));
 
                     // it's needed because `block.Hash` was updated with the state root hash.
                     // FIXME: we need a method for calculating the state root hash without
@@ -1044,12 +1041,12 @@ namespace Libplanet.Blockchain
 #pragma warning restore MEN003
 
         /// <summary>
-        /// Mines a next <see cref="Block{T}"/> using staged <see cref="Transaction{T}"/>s,
-        /// and then <see cref="Append(Block{T}, StateCompleterSet{T}?)"/> it to the chain
+        /// Mines a next <see cref="Block"/> using staged <see cref="Transaction"/>s,
+        /// and then <see cref="Append(Block, StateCompleterSet{T}?)"/> it to the chain
         /// (unless the <paramref name="append"/> option is turned off).
         /// </summary>
         /// <param name="miner">The <see cref="Address"/> of miner that mined the block.</param>
-        /// <param name="append">Whether to <see cref="Append(Block{T}, StateCompleterSet{T}?)"/>
+        /// <param name="append">Whether to <see cref="Append(Block, StateCompleterSet{T}?)"/>
         /// the mined block.  Turned on by default.</param>
         /// <param name="maxTransactions">The maximum number of transactions that a block can
         /// accept.  This value must be greater than 0, and less than or equal to
@@ -1062,10 +1059,10 @@ namespace Libplanet.Blockchain
         /// A cancellation token used to propagate notification that this
         /// operation should be canceled.
         /// </param>
-        /// <returns>An awaitable task with a <see cref="Block{T}"/> that is mined.</returns>
+        /// <returns>An awaitable task with a <see cref="Block"/> that is mined.</returns>
         /// <exception cref="OperationCanceledException">Thrown when
-        /// <see cref="BlockChain{T}.Tip"/> is changed while mining.</exception>
-        public Task<Block<T>> MineBlock(
+        /// <see cref="BlockChain.Tip"/> is changed while mining.</exception>
+        public Task<Block> MineBlock(
             Address miner,
             bool append = true,
             int? maxTransactions = null,
@@ -1074,7 +1071,7 @@ namespace Libplanet.Blockchain
             MineBlock(miner, DateTimeOffset.UtcNow, append, maxTransactions, cancellationToken);
 
         /// <summary>
-        /// Creates a new <see cref="Transaction{T}"/> and stage the transaction.
+        /// Creates a new <see cref="Transaction"/> and stage the transaction.
         /// Cannot create new transaction if the genesis block does not exist.
         /// </summary>
         /// <param name="privateKey">A <see cref="PrivateKey"/> of the account who creates and
@@ -1083,12 +1080,12 @@ namespace Libplanet.Blockchain
         /// </param>
         /// <param name="updatedAddresses"><see cref="Address"/>es whose states affected by
         /// <paramref name="actions"/>.</param>
-        /// <param name="timestamp">The time this <see cref="Transaction{T}"/> is created and
+        /// <param name="timestamp">The time this <see cref="Transaction"/> is created and
         /// signed.</param>
-        /// <returns>A created new <see cref="Transaction{T}"/> signed by the given
+        /// <returns>A created new <see cref="Transaction"/> signed by the given
         /// <paramref name="privateKey"/>.</returns>
-        /// <seealso cref="Transaction{T}.Create" />
-        public Transaction<T> MakeTransaction(
+        /// <seealso cref="Transaction.Create" />
+        public Transaction MakeTransaction(
             PrivateKey privateKey,
             IEnumerable<T> actions,
             IImmutableSet<Address> updatedAddresses = null,
@@ -1098,7 +1095,7 @@ namespace Libplanet.Blockchain
             lock (_txLock)
             {
                 // FIXME: Exception should be documented when the genesis block does not exist.
-                Transaction<T> tx = Transaction<T>.Create(
+                Transaction tx = Transaction.Create(
                     GetNextTxNonce(privateKey.ToAddress()),
                     privateKey,
                     Genesis.Hash,
@@ -1123,7 +1120,7 @@ namespace Libplanet.Blockchain
 
 #pragma warning disable MEN003
         internal void Append(
-            Block<T> block,
+            Block block,
             DateTimeOffset currentTime,
             bool evaluateActions,
             bool renderBlocks,
@@ -1169,7 +1166,7 @@ namespace Libplanet.Blockchain
             }
 
             _rwlock.EnterUpgradeableReadLock();
-            Block<T> prevTip = Tip;
+            Block prevTip = Tip;
             try
             {
                 InvalidBlockException e = ValidateNextBlock(block);
@@ -1184,7 +1181,7 @@ namespace Libplanet.Blockchain
 
                 // block.Transactions have already been sorted by
                 // the tx nounce order when the block was created
-                foreach (Transaction<T> tx1 in block.Transactions)
+                foreach (Transaction tx1 in block.Transactions)
                 {
                     if (!Policy.DoesTransactionFollowsPolicy(tx1, this))
                     {
@@ -1375,14 +1372,14 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="evaluations"><see cref="ActionEvaluation"/>s of the block.  If it is
         /// <c>null</c>, evaluate actions of the <paramref name="block"/> again.</param>
-        /// <param name="block"><see cref="Block{T}"/> to render actions.</param>
+        /// <param name="block"><see cref="Block"/> to render actions.</param>
         /// <param name="renderer">The renderer to render actions.</param>
         /// <param name="stateCompleters">The strategy to complement incomplete block states.
         /// <see cref="StateCompleterSet{T}.Recalculate"/> by default.</param>
         /// <returns>The number of actions rendered.</returns>
         internal int RenderActions(
             IReadOnlyList<ActionEvaluation> evaluations,
-            Block<T> block,
+            Block block,
             IActionRenderer<T> renderer,
             StateCompleterSet<T>? stateCompleters = null
         )
@@ -1438,7 +1435,7 @@ namespace Libplanet.Blockchain
         /// <paramref name="block"/> has executed before, it does not execute it nor mutate states.
         /// </remarks>
         internal IReadOnlyList<ActionEvaluation> ExecuteActions(
-            Block<T> block,
+            Block block,
             StateCompleterSet<T>? stateCompleters = null
         )
         {
@@ -1514,7 +1511,7 @@ namespace Libplanet.Blockchain
 
         /// <summary>
         /// Find an approximate to the topmost common ancestor between this
-        /// <see cref="BlockChain{T}"/> and a given <see cref="BlockLocator"/>.
+        /// <see cref="BlockChain"/> and a given <see cref="BlockLocator"/>.
         /// </summary>
         /// <param name="locator">A block locator that contains candidate common ancestors.</param>
         /// <returns>An approximate to the topmost common ancestor.  If it failed to find anything
@@ -1529,7 +1526,7 @@ namespace Libplanet.Blockchain
                 foreach (BlockHash hash in locator)
                 {
                     if (_blocks.ContainsKey(hash)
-                        && _blocks[hash] is Block<T> block
+                        && _blocks[hash] is Block block
                         && hash.Equals(Store.IndexBlockHash(Id, block.Index)))
                     {
                         _logger.Debug(
@@ -1615,7 +1612,7 @@ namespace Libplanet.Blockchain
                     nameof(point));
             }
 
-            Block<T> pointBlock = this[point];
+            Block pointBlock = this[point];
 
             if (!point.Equals(this[pointBlock.Index].Hash))
             {
@@ -1644,7 +1641,7 @@ namespace Libplanet.Blockchain
                 StateStore.ForkStates(Id, forked.Id, pointBlock);
                 Store.ForkTxNonces(Id, forked.Id);
 
-                for (Block<T> block = Tip;
+                for (Block block = Tip;
                      block.PreviousHash is { } hash && !block.Hash.Equals(point);
                      block = _blocks[hash])
                 {
@@ -1725,12 +1722,12 @@ namespace Libplanet.Blockchain
             }
 
             // Finds the branch point.
-            Block<T> topmostCommon = null;
+            Block topmostCommon = null;
             if (!(Tip is null))
             {
                 long shorterHeight =
                     Math.Min(Count, other.Count) - 1;
-                Block<T> t = this[shorterHeight], o = other[shorterHeight];
+                Block t = this[shorterHeight], o = other[shorterHeight];
 
                 while (true)
                 {
@@ -1785,7 +1782,7 @@ namespace Libplanet.Blockchain
                     int cnt = 0;
 
                     for (
-                        Block<T> b = Tip;
+                        Block b = Tip;
                         !(b is null) && b.Index > (topmostCommon?.Index ?? -1) &&
                         b.PreviousHash is { } ph;
                         b = this[ph]
@@ -1830,24 +1827,24 @@ namespace Libplanet.Blockchain
                         cnt);
                 }
 
-                Block<T> oldTip = Tip ?? Genesis, newTip = other.Tip ?? other.Genesis;
+                Block oldTip = Tip ?? Genesis, newTip = other.Tip ?? other.Genesis;
 
                 _rwlock.EnterWriteLock();
                 try
                 {
-                    IEnumerable<Transaction<T>>
-                        GetTxsWithRange(BlockChain<T> chain, Block<T> start, Block<T> end)
+                    IEnumerable<Transaction>
+                        GetTxsWithRange(BlockChain<T> chain, Block start, Block end)
                         => Enumerable
                             .Range((int)start.Index + 1, (int)(end.Index - start.Index))
                             .SelectMany(x => chain[x].Transactions);
 
                     // It assumes reorg is small size. If it was big, this may be heavy task.
-                    ImmutableHashSet<Transaction<T>> unstagedTxs =
+                    ImmutableHashSet<Transaction> unstagedTxs =
                         GetTxsWithRange(this, topmostCommon, Tip).ToImmutableHashSet();
-                    ImmutableHashSet<Transaction<T>> stageTxs =
+                    ImmutableHashSet<Transaction> stageTxs =
                         GetTxsWithRange(other, topmostCommon, other.Tip).ToImmutableHashSet();
-                    ImmutableHashSet<Transaction<T>> restageTxs = unstagedTxs.Except(stageTxs);
-                    foreach (Transaction<T> restageTx in restageTxs)
+                    ImmutableHashSet<Transaction> restageTxs = unstagedTxs.Except(stageTxs);
+                    foreach (Transaction restageTx in restageTxs)
                     {
                         StagePolicy.Stage(this, restageTx);
                     }
@@ -1878,7 +1875,7 @@ namespace Libplanet.Blockchain
                     _logger.Debug("Rendering actions in new chain.");
 
                     // Render actions that had been behind.
-                    long startToRenderIndex = topmostCommon is Block<T> branchpoint
+                    long startToRenderIndex = topmostCommon is Block branchpoint
                         ? branchpoint.Index + 1
                         : 0;
 
@@ -1908,26 +1905,26 @@ namespace Libplanet.Blockchain
         }
 #pragma warning restore MEN003
 
-        internal ImmutableArray<Transaction<T>> ListStagedTransactions()
+        internal ImmutableArray<Transaction> ListStagedTransactions()
         {
-            Transaction<T>[] txs = StagePolicy.Iterate(this).ToArray();
+            Transaction[] txs = StagePolicy.Iterate(this).ToArray();
 
-            Dictionary<Address, LinkedList<Transaction<T>>> seats = txs
+            Dictionary<Address, LinkedList<Transaction>> seats = txs
                 .GroupBy(tx => tx.Signer)
-                .Select(g => (g.Key, new LinkedList<Transaction<T>>(g.OrderBy(tx => tx.Nonce))))
+                .Select(g => (g.Key, new LinkedList<Transaction>(g.OrderBy(tx => tx.Nonce))))
                 .ToDictionary(pair => pair.Item1, pair => pair.Item2);
 
             return txs.Select(tx =>
             {
-                LinkedList<Transaction<T>> seat = seats[tx.Signer];
-                Transaction<T> first = seat.First.Value;
+                LinkedList<Transaction> seat = seats[tx.Signer];
+                Transaction first = seat.First.Value;
                 seat.RemoveFirst();
                 return first;
             }).ToImmutableArray();
         }
 
         internal void SetStates(
-            Block<T> block,
+            Block block,
             IReadOnlyList<ActionEvaluation> actionEvaluations
         )
         {
@@ -1938,7 +1935,7 @@ namespace Libplanet.Blockchain
            }
         }
 
-        internal IEnumerable<Block<T>> IterateBlocks(int offset = 0, int? limit = null)
+        internal IEnumerable<Block> IterateBlocks(int offset = 0, int? limit = null)
         {
             _rwlock.EnterUpgradeableReadLock();
 
@@ -2018,7 +2015,7 @@ namespace Libplanet.Blockchain
             // on the fly.
             foreach (BlockHash hash in BlockHashes)
             {
-                Block<T> block = this[hash];
+                Block block = this[hash];
                 if (StateStore.ContainsBlockStates(hash))
                 {
                     continue;
@@ -2041,10 +2038,10 @@ namespace Libplanet.Blockchain
             }
         }
 
-        private InvalidBlockException ValidateNextBlock(Block<T> nextBlock)
+        private InvalidBlockException ValidateNextBlock(Block nextBlock)
         {
             int actualProtocolVersion = nextBlock.ProtocolVersion;
-            const int currentProtocolVersion = Block<T>.CurrentProtocolVersion;
+            const int currentProtocolVersion = Block.CurrentProtocolVersion;
             if (actualProtocolVersion > currentProtocolVersion)
             {
                 string message =
@@ -2077,7 +2074,7 @@ namespace Libplanet.Blockchain
                     ? this[index - 1].TotalDifficulty + nextBlock.Difficulty
                     : nextBlock.Difficulty;
 
-            Block<T> lastBlock = index >= 1 ? this[index - 1] : null;
+            Block lastBlock = index >= 1 ? this[index - 1] : null;
             BlockHash? prevHash = lastBlock?.Hash;
             DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
 

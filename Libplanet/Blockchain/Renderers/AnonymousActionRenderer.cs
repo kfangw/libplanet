@@ -6,11 +6,11 @@ using Libplanet.Blocks;
 namespace Libplanet.Blockchain.Renderers
 {
     /// <summary>
-    /// An <see cref="IActionRenderer{T}"/> that invokes its callbacks.
-    /// In other words, this is an <see cref="IActionRenderer{T}"/> version of
-    /// <see cref="AnonymousRenderer{T}"/>.
+    /// An <see cref="IActionRenderer"/> that invokes its callbacks.
+    /// In other words, this is an <see cref="IActionRenderer"/> version of
+    /// <see cref="AnonymousRenderer"/>.
     /// <para>This class is useful when you want an one-use ad-hoc implementation (i.e., Java-style
-    /// anonymous class) of <see cref="IActionRenderer{T}"/> interface.</para>
+    /// anonymous class) of <see cref="IActionRenderer"/> interface.</para>
     /// </summary>
     /// <example>
     /// With object initializers, you can easily make an one-use action renderer:
@@ -24,10 +24,7 @@ namespace Libplanet.Blockchain.Renderers
     /// };
     /// ]]></code>
     /// </example>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="BlockChain{T}"/>'s type parameter.</typeparam>
-    public sealed class AnonymousActionRenderer<T> : AnonymousRenderer<T>, IActionRenderer<T>
-        where T : IAction, new()
+    public sealed class AnonymousActionRenderer : AnonymousRenderer, IActionRenderer
     {
         /// <summary>
         /// A callback function to be invoked together with
@@ -55,12 +52,12 @@ namespace Libplanet.Blockchain.Renderers
 
         /// <summary>
         /// A callback function to be invoked together with
-        /// <see cref="RenderBlockEnd(Block{T}, Block{T})"/>.
+        /// <see cref="RenderBlockEnd(Block, Block)"/>.
         /// </summary>
-        public Action<Block<T>, Block<T>>? BlockEndRenderer { get; set; }
+        public Action<Block, Block>? BlockEndRenderer { get; set; }
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.RenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public void RenderAction(
             IAction action,
             IActionContext context,
@@ -69,7 +66,7 @@ namespace Libplanet.Blockchain.Renderers
             ActionRenderer?.Invoke(action, context, nextStates);
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
+        /// cref="IActionRenderer.UnrenderAction(IAction, IActionContext, IAccountStateDelta)"/>
         public void UnrenderAction(
             IAction action,
             IActionContext context,
@@ -78,17 +75,17 @@ namespace Libplanet.Blockchain.Renderers
             ActionUnrenderer?.Invoke(action, context, nextStates);
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.RenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.RenderActionError(IAction, IActionContext, Exception)"/>
         public void RenderActionError(IAction action, IActionContext context, Exception exception)
             => ActionErrorRenderer?.Invoke(action, context, exception);
 
         /// <inheritdoc
-        /// cref="IActionRenderer{T}.UnrenderActionError(IAction, IActionContext, Exception)"/>
+        /// cref="IActionRenderer.UnrenderActionError(IAction, IActionContext, Exception)"/>
         public void UnrenderActionError(IAction action, IActionContext context, Exception exception)
             => ActionErrorUnrenderer?.Invoke(action, context, exception);
 
-        /// <inheritdoc cref="IActionRenderer{T}.RenderBlockEnd(Block{T}, Block{T})"/>
-        public void RenderBlockEnd(Block<T> oldTip, Block<T> newTip) =>
+        /// <inheritdoc cref="IActionRenderer.RenderBlockEnd(Block, Block)"/>
+        public void RenderBlockEnd(Block oldTip, Block newTip) =>
             BlockEndRenderer?.Invoke(oldTip, newTip);
     }
 }

@@ -14,10 +14,10 @@ namespace Libplanet.Tx
 {
     /// <summary>
     /// Consists of <see cref="IAction"/> and is signed to be included in
-    /// a <see cref="Blocks.Block{T}"/> and transmitted over the network.
+    /// a <see cref="Blocks.Block"/> and transmitted over the network.
     /// </summary>
     /// <see cref="IAction"/>, and uses it for this type parameter.
-    /// This type parameter is aligned with <see cref="Blocks.Block{T}"/>'s
+    /// This type parameter is aligned with <see cref="Blocks.Block"/>'s
     /// and <see cref="Blockchain.BlockChain{T}"/>'s type parameters.
     /// <seealso cref="IAction"/>
     /// <seealso cref="PolymorphicAction{T}"/>
@@ -338,18 +338,18 @@ namespace Libplanet.Tx
         /// is approximated in some degree, because the result of
         /// <paramref name="actions"/> are not deterministic until
         /// the <see cref="Transaction"/> belongs to a <see
-        /// cref="Libplanet.Blocks.Block{T}"/>.
+        /// cref="Libplanet.Blocks.Block"/>.
         /// <para>If an <see cref="IAction"/> depends on previous states or
         /// some randomness to determine what <see cref="Address"/> to update,
         /// the automatically filled <see cref="UpdatedAddresses"/> became
         /// mismatched from the <see cref="Address"/>es
         /// <paramref name="actions"/> actually update after
-        /// a <see cref="Libplanet.Blocks.Block{T}"/> is mined.
+        /// a <see cref="Libplanet.Blocks.Block"/> is mined.
         /// Although such case would be rare, a programmer could manually give
         /// the <paramref name="updatedAddresses"/> parameter
         /// the <see cref="Address"/>es they predict to be updated.</para>
         /// <para>If an <see cref="IAction"/> oversimplifies the assumption
-        /// about the <see cref="Libplanet.Blocks.Block{T}"/> it belongs to,
+        /// about the <see cref="Libplanet.Blocks.Block"/> it belongs to,
         /// runtime exceptions could be thrown from this factory method.
         /// The best solution to that is not to oversimplify things,
         /// there is an option to check <see cref="IActionContext"/>'s

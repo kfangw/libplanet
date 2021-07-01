@@ -27,7 +27,7 @@ namespace Libplanet.Net
         public TimeSpan BlockRecvTimeout { get; set; } = TimeSpan.FromSeconds(15);
 
         /// <summary>
-        /// The base timeout used to receive <see cref="Transaction{T}"/> from other peers.
+        /// The base timeout used to receive <see cref="Transaction"/> from other peers.
         /// </summary>
         public TimeSpan TxRecvTimeout { get; set; } = TimeSpan.FromSeconds(3);
 

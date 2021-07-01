@@ -11,13 +11,11 @@ using Serilog;
 namespace Libplanet.Blockchain.Renderers
 {
     /// <summary>
-    /// Decorates an <see cref="IRenderer{T}"/> instance and delays the events until blocks
+    /// Decorates an <see cref="IRenderer"/> instance and delays the events until blocks
     /// are <em>confirmed</em> the certain number of blocks.  When blocks are recognized
     /// the delayed events relevant to these blocks are relayed to the decorated
-    /// <see cref="IRenderer{T}"/>.
+    /// <see cref="IRenderer"/>.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="BlockChain{T}"/>'s type parameter.</typeparam>
     /// <example>
     /// <code><![CDATA[
     /// IStore store = GetStore();
@@ -26,7 +24,7 @@ namespace Libplanet.Blockchain.Renderers
     /// // Wraps the renderer with DelayedRenderer; the SomeRenderer instance becomes to receive
     /// // event messages only after the relevent blocks are confirmed by 3+ blocks.
     /// renderer = new DelayedRenderer<ExampleAction>(renderer, policy, store, confirmations: 3);
-    /// // You must pass the same policy & store to the BlockChain<T>() constructor:
+    /// // You must pass the same policy & store to the BlockChain() constructor:
     /// var chain = new BlockChain<ExampleAction>(
     ///     ...,
     ///     policy: policy,
@@ -34,25 +32,24 @@ namespace Libplanet.Blockchain.Renderers
     ///     renderers: new[] { renderer });
     /// ]]></code>
     /// </example>
-    /// <remarks>Since <see cref="IActionRenderer{T}"/> is a subtype of <see cref="IRenderer{T}"/>,
-    /// <see cref="DelayedRenderer{T}(IRenderer{T}, IComparer{BlockPerception}, IStore, int)"/>
-    /// constructor can take an <see cref="IActionRenderer{T}"/> instance as well.
+    /// <remarks>Since <see cref="IActionRenderer"/> is a subtype of <see cref="IRenderer"/>,
+    /// <see cref="DelayedRenderer(IRenderer, IComparer{BlockPerception}, IStore, int)"/>
+    /// constructor can take an <see cref="IActionRenderer"/> instance as well.
     /// However, even it takes an action renderer, action-level fine-grained events won't hear.
-    /// For action renderers, please use <see cref="DelayedActionRenderer{T}"/> instead.</remarks>
-    public class DelayedRenderer<T> : IRenderer<T>
-        where T : IAction, new()
+    /// For action renderers, please use <see cref="DelayedActionRenderer"/> instead.</remarks>
+    public class DelayedRenderer : IRenderer
     {
-        private Block<T>? _tip;
+        private Block? _tip;
 
         /// <summary>
-        /// Creates a new <see cref="DelayedRenderer{T}"/> instance decorating the given
+        /// Creates a new <see cref="DelayedRenderer"/> instance decorating the given
         /// <paramref name="renderer"/>.
         /// </summary>
         /// <param name="renderer">The renderer to decorate which has the <em>actual</em>
         /// implementations and receives delayed events.</param>
         /// <param name="canonicalChainComparer">The same canonical chain comparer to
-        /// <see cref="BlockChain{T}.Policy"/>.</param>
-        /// <param name="store">The same store to what <see cref="BlockChain{T}"/> uses.</param>
+        /// <see cref="BlockChain.Policy"/>.</param>
+        /// <param name="store">The same store to what <see cref="BlockChain"/> uses.</param>
         /// <param name="confirmations">The required number of confirmations to recognize a block.
         /// It must be greater than zero (note that zero <paramref name="confirmations"/> mean
         /// nothing is delayed so that it is equivalent to the bare <paramref name="renderer"/>).
@@ -60,7 +57,7 @@ namespace Libplanet.Blockchain.Renderers
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the argument
         /// <paramref name="confirmations"/> is not greater than zero.</exception>
         public DelayedRenderer(
-            IRenderer<T> renderer,
+            IRenderer renderer,
             IComparer<BlockPerception> canonicalChainComparer,
             IStore store,
             int confirmations
@@ -93,16 +90,16 @@ namespace Libplanet.Blockchain.Renderers
         /// The inner renderer which has the <em>actual</em> implementations and receives delayed
         /// events.
         /// </summary>
-        public IRenderer<T> Renderer { get; }
+        public IRenderer Renderer { get; }
 
         /// <summary>
-        /// The same canonical chain comparer to <see cref="BlockChain{T}.Policy"/>.
+        /// The same canonical chain comparer to <see cref="BlockChain.Policy"/>.
         /// </summary>
-        /// <seealso cref="IBlockPolicy{T}.CanonicalChainComparer"/>
+        /// <seealso cref="IBlockPolicy.CanonicalChainComparer"/>
         public IComparer<BlockPerception> CanonicalChainComparer { get; }
 
         /// <summary>
-        /// The same store to what <see cref="BlockChain{T}"/> uses.
+        /// The same store to what <see cref="BlockChain"/> uses.
         /// </summary>
         public IStore Store { get; }
 
@@ -117,12 +114,12 @@ namespace Libplanet.Blockchain.Renderers
         /// The <em>recognized</em> topmost block.  If not enough blocks are discovered yet,
         /// this property can be <c>null</c>.
         /// </summary>
-        public Block<T>? Tip
+        public Block? Tip
         {
             get => _tip;
             private set
             {
-                Block<T>? newTip = value;
+                Block? newTip = value;
                 if (newTip is null || newTip.Equals(_tip))
                 {
                     return;
@@ -131,7 +128,7 @@ namespace Libplanet.Blockchain.Renderers
                 if (_tip is null)
                 {
                     Logger.Verbose(
-                        $"{nameof(DelayedRenderer<T>)}.{nameof(Tip)} is tried to be updated to " +
+                        $"{nameof(DelayedRenderer)}.{nameof(Tip)} is tried to be updated to " +
                         "#{NewTipIndex} {NewTipHash} (from null).",
                         newTip.Index,
                         newTip.Hash
@@ -140,7 +137,7 @@ namespace Libplanet.Blockchain.Renderers
                 else
                 {
                     Logger.Verbose(
-                        $"{nameof(DelayedRenderer<T>)}.{nameof(Tip)} is tried to be updated to " +
+                        $"{nameof(DelayedRenderer)}.{nameof(Tip)} is tried to be updated to " +
                         "#{NewTipIndex} {NewTipHash} (from #{OldTipIndex} {OldTipHash}).",
                         newTip.Index,
                         newTip.Hash,
@@ -149,12 +146,12 @@ namespace Libplanet.Blockchain.Renderers
                     );
                 }
 
-                Block<T>? oldTip = _tip;
+                Block? oldTip = _tip;
                 _tip = newTip;
                 if (oldTip is null)
                 {
                     Logger.Debug(
-                        $"{nameof(DelayedRenderer<T>)}.{nameof(Tip)} was updated to " +
+                        $"{nameof(DelayedRenderer)}.{nameof(Tip)} was updated to " +
                         "#{NewTipIndex} {NewTipHash} (from null).",
                         newTip.Index,
                         newTip.Hash
@@ -163,7 +160,7 @@ namespace Libplanet.Blockchain.Renderers
                 else
                 {
                     Logger.Debug(
-                        $"{nameof(DelayedRenderer<T>)}.{nameof(Tip)} was updated to " +
+                        $"{nameof(DelayedRenderer)}.{nameof(Tip)} was updated to " +
                         "#{NewTipIndex} {NewTipHash} (from #{OldTipIndex} {OldTipHash}).",
                         newTip.Index,
                         newTip.Hash,
@@ -172,9 +169,9 @@ namespace Libplanet.Blockchain.Renderers
                     );
                 }
 
-                if (oldTip is Block<T> oldTip_ && !oldTip.Equals(newTip))
+                if (oldTip is Block oldTip_ && !oldTip.Equals(newTip))
                 {
-                    Block<T>? branchpoint = null;
+                    Block? branchpoint = null;
                     if (!newTip.PreviousHash.Equals(oldTip_.Hash))
                     {
                         branchpoint = FindBranchpoint(oldTip, newTip);
@@ -196,21 +193,21 @@ namespace Libplanet.Blockchain.Renderers
 
         protected ConcurrentDictionary<BlockHash, uint> Confirmed { get; }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderBlock(Block{T}, Block{T})"/>
-        public virtual void RenderBlock(Block<T> oldTip, Block<T> newTip)
+        /// <inheritdoc cref="IRenderer.RenderBlock(Block, Block)"/>
+        public virtual void RenderBlock(Block oldTip, Block newTip)
         {
             Confirmed.TryAdd(oldTip.Hash, 0);
             DiscoverBlock(oldTip, newTip);
         }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorg(Block{T}, Block{T}, Block{T})"/>
-        public virtual void RenderReorg(Block<T> oldTip, Block<T> newTip, Block<T> branchpoint)
+        /// <inheritdoc cref="IRenderer.RenderReorg(Block, Block, Block)"/>
+        public virtual void RenderReorg(Block oldTip, Block newTip, Block branchpoint)
         {
             Confirmed.TryAdd(branchpoint.Hash, 0);
         }
 
-        /// <inheritdoc cref="IRenderer{T}.RenderReorgEnd(Block{T}, Block{T}, Block{T})"/>
-        public virtual void RenderReorgEnd(Block<T> oldTip, Block<T> newTip, Block<T> branchpoint)
+        /// <inheritdoc cref="IRenderer.RenderReorgEnd(Block, Block, Block)"/>
+        public virtual void RenderReorgEnd(Block oldTip, Block newTip, Block branchpoint)
         {
         }
 
@@ -222,29 +219,29 @@ namespace Libplanet.Blockchain.Renderers
         /// <param name="newTip">The topmost block recognized this time.</param>
         /// <param name="branchpoint">A branchpoint between <paramref name="oldTip"/> and
         /// <paramref name="newTip"/> if the tip change is a reorg.  Otherwise <c>null</c>.</param>
-        protected virtual void OnTipChanged(Block<T> oldTip, Block<T> newTip, Block<T>? branchpoint)
+        protected virtual void OnTipChanged(Block oldTip, Block newTip, Block? branchpoint)
         {
-            if (branchpoint is Block<T>)
+            if (branchpoint is Block)
             {
                 Renderer.RenderReorg(oldTip, newTip, branchpoint);
             }
 
             Renderer.RenderBlock(oldTip, newTip);
 
-            if (branchpoint is Block<T>)
+            if (branchpoint is Block)
             {
                 Renderer.RenderReorgEnd(oldTip, newTip, branchpoint);
             }
         }
 
-        protected void DiscoverBlock(Block<T> oldTip, Block<T> newTip)
+        protected void DiscoverBlock(Block oldTip, Block newTip)
         {
             if (Confirmed.ContainsKey(newTip.Hash))
             {
                 return;
             }
 
-            Block<T> branchpoint = FindBranchpoint(oldTip, newTip);
+            Block branchpoint = FindBranchpoint(oldTip, newTip);
             var maxDepth = branchpoint.Index < Confirmations
                 ? 0
                 : branchpoint.Index - Confirmations;
@@ -258,7 +255,7 @@ namespace Libplanet.Blockchain.Renderers
             BlockHash? prev = newTip.PreviousHash;
             while (
                 prev is { } prevHash
-                && Store.GetBlock<T>(prevHash) is Block<T> prevBlock
+                && Store.GetBlock(prevHash) is Block prevBlock
                 && prevBlock.Index >= maxDepth)
             {
                 uint c = Confirmed.GetOrAdd(prevHash, k => 0U);
@@ -295,9 +292,9 @@ namespace Libplanet.Blockchain.Renderers
 
                 if (c >= Confirmations)
                 {
-                    var confirmedBlock = Store.GetBlock<T>(hash);
+                    var confirmedBlock = Store.GetBlock(hash);
 
-                    if (!(Tip is Block<T> t))
+                    if (!(Tip is Block t))
                     {
                         Logger.Verbose(
                             "Promoting #{NewTipIndex} {NewTipHash} as a new tip since there is " +
@@ -340,16 +337,16 @@ namespace Libplanet.Blockchain.Renderers
             }
         }
 
-        private Block<T> FindBranchpoint(Block<T> a, Block<T> b)
+        private Block FindBranchpoint(Block a, Block b)
         {
-            while (a is Block<T> && a.Index > b.Index && a.PreviousHash is { } aPrev)
+            while (a is Block && a.Index > b.Index && a.PreviousHash is { } aPrev)
             {
-                a = Store.GetBlock<T>(aPrev);
+                a = Store.GetBlock(aPrev);
             }
 
-            while (b is Block<T> && b.Index > a.Index && b.PreviousHash is { } bPrev)
+            while (b is Block && b.Index > a.Index && b.PreviousHash is { } bPrev)
             {
-                b = Store.GetBlock<T>(bPrev);
+                b = Store.GetBlock(bPrev);
             }
 
             if (a is null || b is null || a.Index != b.Index)
@@ -370,8 +367,8 @@ namespace Libplanet.Blockchain.Renderers
                 if (a.PreviousHash is { } aPrev &&
                     b.PreviousHash is { } bPrev)
                 {
-                    a = Store.GetBlock<T>(aPrev);
-                    b = Store.GetBlock<T>(bPrev);
+                    a = Store.GetBlock(aPrev);
+                    b = Store.GetBlock(bPrev);
                     continue;
                 }
 
