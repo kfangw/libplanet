@@ -15,8 +15,7 @@ using Serilog.Events;
 
 namespace Libplanet.Net
 {
-    internal class BlockCompletion<TPeer, TAction>
-        where TAction : IAction, new()
+    internal class BlockCompletion<TPeer>
     {
         private readonly ILogger _logger;
         private readonly Func<BlockHash, bool> _completionPredicate;
@@ -28,7 +27,7 @@ namespace Libplanet.Net
 
         public BlockCompletion(Func<BlockHash, bool> completionPredicate = null, int window = 100)
         {
-            _logger = Log.ForContext<BlockCompletion<TPeer, TAction>>();
+            _logger = Log.ForContext<BlockCompletion<TPeer>>();
             _completionPredicate = completionPredicate;
             _window = window;
             _satisfiedBlocks = new ConcurrentDictionary<BlockHash, bool>();
@@ -37,7 +36,7 @@ namespace Libplanet.Net
             _demandEnqueued = new SemaphoreSlim(0);
         }
 
-        public delegate IAsyncEnumerable<Block<TAction>> BlockFetcher(
+        public delegate IAsyncEnumerable<Block> BlockFetcher(
             TPeer peer,
             IEnumerable<BlockHash> blockHashes,
             CancellationToken cancellationToken
@@ -118,7 +117,7 @@ namespace Libplanet.Net
                    (!(_completionPredicate is null) && _completionPredicate(blockHash));
         }
 
-        public bool Satisfy(Block<TAction> block)
+        public bool Satisfy(Block block)
         {
             if (block is null)
             {
@@ -186,7 +185,7 @@ namespace Libplanet.Net
         /// for the task to complete.</param>
         /// <returns>An async enumerable that yields pairs of a fetched block and its source
         /// peer.  It terminates when all demands are satisfied.</returns>
-        public async IAsyncEnumerable<Tuple<Block<TAction>, TPeer>> Complete(
+        public async IAsyncEnumerable<Tuple<Block, TPeer>> Complete(
             IReadOnlyList<TPeer> peers,
             BlockFetcher blockFetcher,
             TimeSpan singleSessionTimeout,
@@ -199,7 +198,7 @@ namespace Libplanet.Net
             }
 
             var pool = new PeerPool(peers);
-            var queue = new AsyncProducerConsumerQueue<Tuple<Block<TAction>, TPeer>>();
+            var queue = new AsyncProducerConsumerQueue<Tuple<Block, TPeer>>();
 
             Task producer = Task.Run(async () =>
             {
@@ -234,7 +233,7 @@ namespace Libplanet.Net
 
             while (await queue.OutputAvailableAsync(cancellationToken))
             {
-                Tuple<Block<TAction>, TPeer> pair;
+                Tuple<Block, TPeer> pair;
                 try
                 {
                     pair = await queue.DequeueAsync(cancellationToken);
@@ -271,7 +270,7 @@ namespace Libplanet.Net
         /// for the task to complete.</param>
         /// <returns>An async enumerable that yields pairs of a fetched block and its source
         /// peer.  It terminates when all demands are satisfied.</returns>
-        public IAsyncEnumerable<Tuple<Block<TAction>, TPeer>> Complete(
+        public IAsyncEnumerable<Tuple<Block, TPeer>> Complete(
             IReadOnlyList<TPeer> peers,
             BlockFetcher blockFetcher,
             int millisecondsSingleSessionTimeout = 10000,
@@ -325,7 +324,7 @@ namespace Libplanet.Net
             BlockFetcher blockFetcher,
             TimeSpan singleSessionTimeout,
             CancellationToken cancellationToken,
-            AsyncProducerConsumerQueue<Tuple<Block<TAction>, TPeer>> queue
+            AsyncProducerConsumerQueue<Tuple<Block, TPeer>> queue
         ) =>
             async (peer, ct) =>
             {
@@ -351,10 +350,10 @@ namespace Libplanet.Net
 
                     try
                     {
-                        ConfiguredCancelableAsyncEnumerable<Block<TAction>> blocks =
+                        ConfiguredCancelableAsyncEnumerable<Block> blocks =
                             blockFetcher(peer, blockHashes, linkedToken)
                                 .WithCancellation(linkedToken);
-                        await foreach (Block<TAction> block in blocks)
+                        await foreach (Block block in blocks)
                         {
                             _logger.Debug(
                                 "Downloaded a block #{BlockIndex} {BlockHash} " +

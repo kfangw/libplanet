@@ -11,7 +11,7 @@ using Libplanet.Tx;
 
 namespace Libplanet.Net
 {
-    public partial class Swarm<T>
+    public partial class Swarm
     {
         private void ProcessMessageHandler(object target, Message message)
         {
@@ -26,7 +26,7 @@ namespace Libplanet.Net
                     _logger.Debug($"Received a {nameof(GetChainStatus)} message.");
 
                     // This is based on the assumption that genesis block always exists.
-                    Block<T> tip = BlockChain.Tip;
+                    Block tip = BlockChain.Tip;
                     var chainStatus = new ChainStatus(
                         tip.ProtocolVersion,
                         BlockChain.Genesis.Hash,
@@ -177,7 +177,7 @@ namespace Libplanet.Net
         {
             foreach (TxId txid in getTxs.TxIds)
             {
-                Transaction<T> tx = BlockChain.GetTransaction(txid);
+                Transaction tx = BlockChain.GetTransaction(txid);
 
                 if (tx is null)
                 {
@@ -209,7 +209,7 @@ namespace Libplanet.Net
                 message.Ids.Select(txid => txid.ToString())
             );
 
-            IStagePolicy<T> stagePolicy = BlockChain.StagePolicy;
+            IStagePolicy stagePolicy = BlockChain.StagePolicy;
             ImmutableHashSet<TxId> newTxIds = message.Ids
                 .Where(id => !_demandTxIds.ContainsKey(id))
                 .Where(id => !stagePolicy.Ignores(BlockChain, id))
@@ -252,7 +252,7 @@ namespace Libplanet.Net
                 _logger.Verbose(logMsg, i, total, hash, identityHex);
                 if (_store.ContainsBlock(hash))
                 {
-                    Block<T> block = _store.GetBlock<T>(hash);
+                    Block block = _store.GetBlock(hash);
                     byte[] payload = block.Serialize();
                     blocks.Add(payload);
                 }

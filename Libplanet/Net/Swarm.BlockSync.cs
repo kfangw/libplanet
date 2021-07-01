@@ -9,11 +9,11 @@ using Nito.AsyncEx;
 
 namespace Libplanet.Net
 {
-    public partial class Swarm<T>
+    public partial class Swarm
     {
         /// <summary>
-        /// Information of <see cref="Swarm{T}"/>'s demand for new blocks.
-        /// It is null when the <see cref="Swarm{T}"/> does not have any block to demand.
+        /// Information of <see cref="Swarm"/>'s demand for new blocks.
+        /// It is null when the <see cref="Swarm"/> does not have any block to demand.
         /// <seealso cref="BlockDemand"/>
         /// </summary>
         public BlockDemand? BlockDemand { get; private set; }
@@ -126,7 +126,7 @@ namespace Libplanet.Net
         }
 
         private async Task SyncPreviousBlocksAsync(
-            BlockChain<T> blockChain,
+            BlockChain blockChain,
             BoundPeer peer,
             BlockHash? stop,
             IProgress<BlockDownloadState> progress,
@@ -137,7 +137,7 @@ namespace Libplanet.Net
         )
         {
             long previousTipIndex = blockChain.Tip?.Index ?? -1;
-            BlockChain<T> synced = null;
+            BlockChain synced = null;
 
             try
             {
@@ -205,9 +205,9 @@ namespace Libplanet.Net
         }
 
 #pragma warning disable MEN003
-        private async Task<BlockChain<T>> FillBlocksAsync(
+        private async Task<BlockChain> FillBlocksAsync(
             BoundPeer peer,
-            BlockChain<T> blockChain,
+            BlockChain blockChain,
             BlockHash? stop,
             IProgress<BlockDownloadState> progress,
             long totalBlockCount,
@@ -220,7 +220,7 @@ namespace Libplanet.Net
         {
             var sessionRandom = new Random();
             const string fname = nameof(FillBlocksAsync);
-            BlockChain<T> workspace = blockChain;
+            BlockChain workspace = blockChain;
             var scope = new List<Guid>();
             bool renderActions = evaluateActions;
             bool renderBlocks = true;
@@ -230,7 +230,7 @@ namespace Libplanet.Net
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     int subSessionId = sessionRandom.Next();
-                    Block<T> tip = workspace?.Tip;
+                    Block tip = workspace?.Tip;
 
                     _logger.Debug(
                         "{SessionId}/{SubSessionId}: Trying to find branchpoint...",
@@ -352,14 +352,14 @@ namespace Libplanet.Net
 
                     totalBlockCount = Math.Max(totalBlockCount, receivedBlockCount + hashCount);
 
-                    IAsyncEnumerable<Block<T>> blocks = GetBlocksAsync(
+                    IAsyncEnumerable<Block> blocks = GetBlocksAsync(
                         peer,
                         hashesAsArray.Select(pair => pair.Item2),
                         cancellationToken
                     );
 
                     var receivedBlockCountCurrentLoop = 0;
-                    await foreach (Block<T> block in blocks)
+                    await foreach (Block block in blocks)
                     {
                         const string startMsg =
                             "{SessionId}/{SubSessionId}: Try to append a block " +
