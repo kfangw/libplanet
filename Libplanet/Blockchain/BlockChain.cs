@@ -28,8 +28,9 @@ namespace Libplanet.Blockchain
     /// A class have <see cref="Block"/>s, <see cref="Transaction"/>s, and the chain
     /// information.
     /// <para>In order to watch its state changes, implement <see cref="IRenderer"/>
-    /// interface and pass it to the <see cref="BlockChain(IBlockPolicy, IStagePolicy,
-    /// IStore, IStateStore, Block, IEnumerable{IRenderer})"/> constructor.</para>
+    /// interface and pass it to the <see cref=
+    /// "BlockChain(IBlockPolicy, IStagePolicy, IStore, IStateStore, Block, IEnumerable{IRenderer})"
+    /// /> constructor.</para>
     /// </summary>
     /// <remarks>This object is guaranteed that it has at least one block, since it takes a genesis
     /// block when it's instantiated.</remarks>
@@ -219,8 +220,8 @@ namespace Libplanet.Blockchain
         /// <remarks>
         /// Since this value is immutable, renderers cannot be registered after once a <see
         /// cref="BlockChain"/> object is instantiated; use <c>renderers</c> option of <see cref=
-        /// "BlockChain(IBlockPolicy, IStagePolicy, IStore, IStateStore, Block,
-        /// IEnumerable{IRenderer})"/>
+        /// "BlockChain(IBlockPolicy, IStagePolicy, IStore, IStateStore, Block, IEnumerable{IRenderer})"
+        /// />
         /// constructor instead.
         /// </remarks>
         public IImmutableList<IRenderer> Renderers { get; }
@@ -356,7 +357,7 @@ namespace Libplanet.Blockchain
         /// Mine the genesis block of the blockchain.
         /// </summary>
         /// <param name="actions">List of actions will be included in the genesis block.
-        /// If it's null, it will be replaced with <see cref="ImmutableArray.Empty"/>
+        /// If it's null, it will be replaced with <see cref="ImmutableArray{IAction}.Empty"/>
         /// as default.</param>
         /// <param name="privateKey">A private key to sign the transaction in the genesis block.
         /// If it's null, it will use new private key as default.</param>
@@ -503,7 +504,7 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="address">The owner <see cref="Address"/> to query.</param>
         /// <param name="currency">The currency type to query.</param>
-        /// <param name="offset">The <see cref="HashDigest"/> of the block to
+        /// <param name="offset">The <see cref="HashDigest{T}"/> of the block to
         /// start finding the state. It will be the tip of the
         /// <see cref="BlockChain"/> if it is <c>null</c>.</param>
         /// <param name="stateCompleter">When the <see cref="BlockChain"/> instance does not
@@ -1087,7 +1088,7 @@ namespace Libplanet.Blockchain
         /// <seealso cref="Transaction.Create" />
         public Transaction MakeTransaction(
             PrivateKey privateKey,
-            IEnumerable actions,
+            IEnumerable<IAction> actions,
             IImmutableSet<Address> updatedAddresses = null,
             DateTimeOffset? timestamp = null)
         {

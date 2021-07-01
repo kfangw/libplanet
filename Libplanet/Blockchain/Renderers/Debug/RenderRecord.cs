@@ -208,8 +208,8 @@ namespace Libplanet.Blockchain.Renderers.Debug
             public Block(
                 long index,
                 string stackTrace,
-                Block oldTip,
-                Block newTip,
+                Libplanet.Blocks.Block oldTip,
+                Libplanet.Blocks.Block newTip,
                 bool end = false
             )
                 : base(index, stackTrace, oldTip, newTip, end)
@@ -239,9 +239,9 @@ namespace Libplanet.Blockchain.Renderers.Debug
             public Reorg(
                 long index,
                 string stackTrace,
-                Block oldTip,
-                Block newTip,
-                Block branchpoint,
+                Libplanet.Blocks.Block oldTip,
+                Libplanet.Blocks.Block newTip,
+                Libplanet.Blocks.Block branchpoint,
                 bool end = false
             )
                 : base(index, stackTrace, oldTip, newTip, end)

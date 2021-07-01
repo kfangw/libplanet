@@ -24,16 +24,16 @@ namespace Libplanet.Action
         /// <summary>
         /// Creates a new <see cref="UnexpectedlyTerminatedActionException"/> object.
         /// </summary>
-        /// <param name="blockHash">The <see cref="Block{T}.Hash"/> of the <see cref="Block{T}"/>
+        /// <param name="blockHash">The <see cref="Block.Hash"/> of the <see cref="Block"/>
         /// that <paramref name="action"/> belongs to.  This can be <c>null</c> on rehearsal mode.
         /// </param>
-        /// <param name="blockIndex">The <see cref="Block{T}.Index"/> of the <see cref="Block{T}"/>
+        /// <param name="blockIndex">The <see cref="Block.Index"/> of the <see cref="Block"/>
         /// that <paramref name="action"/> belongs to.  This can be <c>null</c> on rehearsal mode.
         /// </param>
         /// <param name="txid">The <see cref="Transaction.Id"/> of
         /// the <see cref="Transaction"/> that <paramref name="action"/> belongs to.
         /// This can be <c>null</c> on rehearsal mode or if <paramref name="action"/> is
-        /// a <see cref="IBlockPolicy{T}.BlockAction"/>.
+        /// a <see cref="IBlockPolicy.BlockAction"/>.
         /// </param>
         /// <param name="action">The <see cref="IAction"/> object which threw an exception.</param>
         /// <param name="previousStateRootHash">The <see cref="ITrie.Hash"/> of states until
@@ -123,13 +123,13 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// The <see cref="Block{T}.Hash"/> of the <see cref="Block{T}"/> that <see cref="Action"/>
+        /// The <see cref="Block.Hash"/> of the <see cref="Block"/> that <see cref="Action"/>
         /// belongs to.  This can be <c>null</c> on rehearsal mode.
         /// </summary>
         public BlockHash? BlockHash { get; }
 
         /// <summary>
-        /// The <see cref="Block{T}.Index"/> of the <see cref="Block{T}"/> that <see cref="Action"/>
+        /// The <see cref="Block.Index"/> of the <see cref="Block"/> that <see cref="Action"/>
         /// belongs to.  This can be <c>null</c> on rehearsal mode.
         /// </summary>
         public long? BlockIndex { get; }
@@ -137,7 +137,7 @@ namespace Libplanet.Action
         /// <summary>
         /// The <see cref="Transaction.Id"/> of the <see cref="Transaction"/> that
         /// <see cref="Action"/> belongs to.  This can be <c>null</c> on rehearsal mode or
-        /// if <see cref="Action"/> is a <see cref="IBlockPolicy{T}.BlockAction"/>.
+        /// if <see cref="Action"/> is a <see cref="IBlockPolicy.BlockAction"/>.
         /// </summary>
         public TxId? TxId { get; }
 

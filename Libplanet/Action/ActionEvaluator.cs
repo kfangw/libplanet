@@ -18,15 +18,12 @@ namespace Libplanet.Action
     /// <summary>
     /// Class responsible for handling of <see cref="IAction"/> evaluations.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match
-    /// the <see cref="Block{T}"/>'s type parameter.</typeparam>
-    public class ActionEvaluator<T>
-        where T : IAction, new()
+    public class ActionEvaluator
     {
-        internal static readonly StateGetter<T> NullStateGetter =
+        internal static readonly StateGetter NullStateGetter =
             (address, hashDigest, stateCompleter) => null;
 
-        internal static readonly BalanceGetter<T> NullBalanceGetter =
+        internal static readonly BalanceGetter NullBalanceGetter =
             (address, currency, hashDigest, fungibleAssetStateCompleter)
                 => new FungibleAssetValue(currency);
 
@@ -35,7 +32,7 @@ namespace Libplanet.Action
             (address, currency) => new FungibleAssetValue(currency);
 
         // FIXME: Although used for dummy context, this can be confusing.
-        internal static readonly Block<T> NullBlock = new Block<T>(
+        internal static readonly Block NullBlock = new Block(
             index: 0,
             difficulty: 0,
             totalDifficulty: 0,
@@ -45,28 +42,28 @@ namespace Libplanet.Action
             timestamp: DateTimeOffset.UtcNow,
             transactions: ImmutableArray<Transaction>.Empty);
 
-        private static readonly ILogger _logger = Log.ForContext<ActionEvaluator<T>>();
+        private static readonly ILogger _logger = Log.ForContext<ActionEvaluator>();
         private readonly IAction? _policyBlockAction;
-        private readonly StateGetter<T> _stateGetter;
-        private readonly BalanceGetter<T> _balanceGetter;
+        private readonly StateGetter _stateGetter;
+        private readonly BalanceGetter _balanceGetter;
         private readonly Func<BlockHash, ITrie>? _trieGetter;
 
         /// <summary>
-        /// Creates a new <see cref="ActionEvaluator{T}"/>.
+        /// Creates a new <see cref="ActionEvaluator"/>.
         /// </summary>
         /// <param name="policyBlockAction">The <see cref="IAction"/> provided by
-        /// <see cref="IBlockPolicy{T}.BlockAction"/> to evaluate at the end for each
-        /// <see cref="Block{T}"/> that gets evaluated.</param>
-        /// <param name="stateGetter">The <see cref="StateGetter{T}"/> to use to retreive
+        /// <see cref="IBlockPolicy.BlockAction"/> to evaluate at the end for each
+        /// <see cref="Block"/> that gets evaluated.</param>
+        /// <param name="stateGetter">The <see cref="StateGetter"/> to use to retreive
         /// the states for a provided <see cref="Address"/>.</param>
-        /// <param name="balanceGetter">The <see cref="BalanceGetter{T}"/> to use to retreive
+        /// <param name="balanceGetter">The <see cref="BalanceGetter"/> to use to retreive
         /// the balance for a provided <see cref="Address"/>.</param>
         /// <param name="trieGetter">The function to retrieve a trie for
         /// a provided <see cref="BlockHash"/>.</param>
         public ActionEvaluator(
             IAction? policyBlockAction,
-            StateGetter<T> stateGetter,
-            BalanceGetter<T> balanceGetter,
+            StateGetter stateGetter,
+            BalanceGetter balanceGetter,
             Func<BlockHash, ITrie>? trieGetter)
         {
             _policyBlockAction = policyBlockAction;
@@ -76,23 +73,23 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// The main entry point for evaluating a <see cref="Block{T}"/>.
+        /// The main entry point for evaluating a <see cref="Block"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> to evaluate.</param>
-        /// <param name="stateCompleterSet">The <see cref="StateCompleterSet{T}"/> to use.</param>
+        /// <param name="block">The <see cref="Block"/> to evaluate.</param>
+        /// <param name="stateCompleterSet">The <see cref="StateCompleterSet"/> to use.</param>
         /// <returns> The result of evaluating every <see cref="IAction"/> related to
-        /// <paramref name="block"/> as an <see cref="IReadOnlyList{T}"/> of
+        /// <paramref name="block"/> as an <see cref="IReadOnlyList{ActionEvaluation}"/> of
         /// <see cref="ActionEvaluation"/>s.</returns>
         /// <remarks>
         /// <para>Publicly exposed for benchmarking.</para>
-        /// <para>First evaluates all <see cref="IAction"/>s in <see cref="Block{T}.Transactions"/>
+        /// <para>First evaluates all <see cref="IAction"/>s in <see cref="Block.Transactions"/>
         /// of <paramref name="block"/> and appends the evaluation of
-        /// the <see cref="IBlockPolicy{T}.BlockAction"/> held by the instance at the end.</para>
+        /// the <see cref="IBlockPolicy.BlockAction"/> held by the instance at the end.</para>
         /// </remarks>
         [Pure]
         public IReadOnlyList<ActionEvaluation> Evaluate(
-            Block<T> block,
-            StateCompleterSet<T> stateCompleterSet)
+            Block block,
+            StateCompleterSet stateCompleterSet)
         {
             ITrie? previousBlockStatesTrie = !(_trieGetter is null) && block.PreviousHash is { } h
                 ? _trieGetter(h)
@@ -132,7 +129,7 @@ namespace Libplanet.Action
         /// </returns>
         /// <remarks>
         /// A mock evaluation is performed on <paramref name="tx"/> using a mock
-        /// <see cref="Block{T}"/> for its evaluation context and a mock
+        /// <see cref="Block"/> for its evaluation context and a mock
         /// <see cref="IAccountStateDelta"/> as its previous state to obtain the
         /// <see cref="IImmutableSet{T}"/> of updated <see cref="Address"/>es.
         /// </remarks>
@@ -142,7 +139,7 @@ namespace Libplanet.Action
                 NullAccountStateGetter,
                 NullAccountBalanceGetter,
                 tx.Signer);
-            IEnumerable<ActionEvaluation> evaluations = ActionEvaluator<T>.EvaluateActions(
+            IEnumerable<ActionEvaluation> evaluations = EvaluateActions(
                 preEvaluationHash: NullBlock.PreEvaluationHash,
                 blockIndex: NullBlock.Index,
                 txid: tx.Id,
@@ -168,14 +165,14 @@ namespace Libplanet.Action
         /// Executes <see cref="IAction"/>s in <paramref name="actions"/>.  All other evaluation
         /// calls resolve to this method.
         /// </summary>
-        /// <param name="preEvaluationHash">The <see cref="Block{T}.PreEvaluationHash"/> of
-        /// the <see cref="Block{T}"/> that <paramref name="actions"/> belong to.</param>
-        /// <param name="blockIndex">The <see cref="Block{T}.Index"/> of the <see cref="Block{T}"/>
+        /// <param name="preEvaluationHash">The <see cref="Block.PreEvaluationHash"/> of
+        /// the <see cref="Block"/> that <paramref name="actions"/> belong to.</param>
+        /// <param name="blockIndex">The <see cref="Block.Index"/> of the <see cref="Block"/>
         /// that <paramref name="actions"/> belong to.</param>
         /// <param name="txid">The <see cref="Transaction.Id"/> of the
         /// <see cref="Transaction"/> that <paramref name="actions"/> belong to.
         /// This can be <c>null</c> on rehearsal mode or if an <see cref="IAction"/> is a
-        /// <see cref="IBlockPolicy{T}.BlockAction"/>.</param>
+        /// <see cref="IBlockPolicy.BlockAction"/>.</param>
         /// <param name="previousStates">The states immediately before <paramref name="actions"/>
         /// being executed.</param>
         /// <param name="miner">An address of block miner.</param>
@@ -189,7 +186,7 @@ namespace Libplanet.Action
         /// <param name="previousBlockStatesTrie">The trie to contain states at previous block.
         /// </param>
         /// <param name="blockAction">Pass <c>true</c> if it is
-        /// <see cref="IBlockPolicy{T}.BlockAction"/>.</param>
+        /// <see cref="IBlockPolicy.BlockAction"/>.</param>
         /// <returns>An enumeration of <see cref="ActionEvaluation"/>s for each
         /// <see cref="IAction"/> in <paramref name="actions"/>.
         /// </returns>
@@ -351,10 +348,10 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// Evaluates <see cref="IAction"/>s in <see cref="Block{T}.Transactions"/>
-        /// of a given <see cref="Block{T}"/>.
+        /// Evaluates <see cref="IAction"/>s in <see cref="Block.Transactions"/>
+        /// of a given <see cref="Block"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> to evaluate.</param>
+        /// <param name="block">The <see cref="Block"/> to evaluate.</param>
         /// <param name="currentTime">The current time to validate time-wise conditions.</param>
         /// <param name="previousStates">The states immediately before an execution of any
         /// <see cref="IAction"/>s.</param>
@@ -365,18 +362,18 @@ namespace Libplanet.Action
         /// </returns>
         /// <remarks>
         /// This passes on an <see cref="InvalidBlockException"/> or an
-        /// <see cref="InvalidTxException"/> thrown by a call to <see cref="Block{T}.Validate"/>
+        /// <see cref="InvalidTxException"/> thrown by a call to <see cref="Block.Validate"/>
         /// of <paramref name="block"/>.
         /// </remarks>
         /// <exception cref="InvalidTxUpdatedAddressesException">Thrown when any
-        /// <see cref="IAction"/> in <see cref="Block{T}.Transactions"/> of <paramref name="block"/>
+        /// <see cref="IAction"/> in <see cref="Block.Transactions"/> of <paramref name="block"/>
         /// tries to update the states of <see cref="Address"/>es not included in
         /// <see cref="Transaction.UpdatedAddresses"/>.</exception>
-        /// <seealso cref="Block{T}.Validate"/>
+        /// <seealso cref="Block.Validate"/>
         /// <seealso cref="EvaluateTxs"/>
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateBlock(
-            Block<T> block,
+            Block block,
             DateTimeOffset currentTime,
             IAccountStateDelta previousStates,
             ITrie? previousBlockStatesTrie = null)
@@ -391,21 +388,21 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// Evaluates every <see cref="IAction"/> in <see cref="Block{T}.Transactions"/> of
-        /// a given <see cref="Block{T}"/>.
+        /// Evaluates every <see cref="IAction"/> in <see cref="Block.Transactions"/> of
+        /// a given <see cref="Block"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> instance to evaluate.</param>
+        /// <param name="block">The <see cref="Block"/> instance to evaluate.</param>
         /// <param name="previousStates">The states immediately before any <see cref="IAction"/>s
         /// being evaluated.</param>
         /// <param name="previousBlockStatesTrie">The trie to contain states at previous block.
         /// </param>
         /// <returns>Enumerates an <see cref="ActionEvaluation"/> for each action where
-        /// the order is determined by <see cref="Block{T}.Transactions"/> of
+        /// the order is determined by <see cref="Block.Transactions"/> of
         /// <paramref name="block"/> and each respective <see cref="Transaction.Actions"/>.
         /// </returns>
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateTxs(
-            Block<T> block,
+            Block block,
             IAccountStateDelta previousStates,
             ITrie? previousBlockStatesTrie = null)
         {
@@ -432,7 +429,7 @@ namespace Libplanet.Action
         /// <summary>
         /// Evaluates <see cref="Transaction.Actions"/> of a given <see cref="Transaction"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> instance that <paramref name="tx"/>
+        /// <param name="block">The <see cref="Block"/> instance that <paramref name="tx"/>
         /// belongs to.</param>
         /// <param name="tx">A <see cref="Transaction"/> instance to evaluate.</param>
         /// <param name="previousStates">The states immediately before
@@ -456,7 +453,7 @@ namespace Libplanet.Action
         /// <seealso cref="EvaluateTxResult"/>
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateTx(
-            Block<T> block,
+            Block block,
             Transaction tx,
             IAccountStateDelta previousStates,
             bool rehearsal = false,
@@ -492,7 +489,7 @@ namespace Libplanet.Action
         /// Evaluates <see cref="Transaction.Actions"/> of a given
         /// <see cref="Transaction"/> and gets the resulting states.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> that <paramref name="tx"/>
+        /// <param name="block">The <see cref="Block"/> that <paramref name="tx"/>
         /// belongs to.</param>
         /// <param name="tx">The <see cref="Transaction"/> to evaluate.</param>
         /// <param name="previousStates">The states immediately before evaluating
@@ -506,7 +503,7 @@ namespace Libplanet.Action
         /// <paramref name="previousStates"/> as well.</returns>
         [Pure]
         internal IAccountStateDelta EvaluateTxResult(
-            Block<T> block,
+            Block block,
             Transaction tx,
             IAccountStateDelta previousStates,
             bool rehearsal = false)
@@ -528,21 +525,21 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// Evaluates the <see cref="IBlockPolicy{T}.BlockAction"/> set by the policy when
-        /// this <see cref="ActionEvaluator{T}"/> was instantiated for a given
-        /// <see cref="Block{T}"/>.
+        /// Evaluates the <see cref="IBlockPolicy.BlockAction"/> set by the policy when
+        /// this <see cref="ActionEvaluator"/> was instantiated for a given
+        /// <see cref="Block"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> instance to evaluate.</param>
+        /// <param name="block">The <see cref="Block"/> instance to evaluate.</param>
         /// <param name="previousStates">The states immediately before the evaluation of
-        /// the <see cref="IBlockPolicy{T}.BlockAction"/> held by the instance.</param>
+        /// the <see cref="IBlockPolicy.BlockAction"/> held by the instance.</param>
         /// <param name="previousBlockStatesTrie">The trie to contain states at previous block.
         /// </param>
         /// <returns>The <see cref="ActionEvaluation"/> of evaluating
-        /// the <see cref="IBlockPolicy{T}.BlockAction"/> held by the instance
+        /// the <see cref="IBlockPolicy.BlockAction"/> held by the instance
         /// for the <paramref name="block"/>.</returns>
         [Pure]
         internal ActionEvaluation EvaluatePolicyBlockAction(
-            Block<T> block,
+            Block block,
             IAccountStateDelta previousStates,
             ITrie? previousBlockStatesTrie)
         {
@@ -575,14 +572,14 @@ namespace Libplanet.Action
         /// <summary>
         /// Retrieves the last previous states for the previous block of <paramref name="block"/>.
         /// </summary>
-        /// <param name="block">The <see cref="Block{T}"/> instance to reference.</param>
-        /// <param name="stateCompleterSet">The <see cref="StateCompleterSet{T}"/> to use.</param>
+        /// <param name="block">The <see cref="Block"/> instance to reference.</param>
+        /// <param name="stateCompleterSet">The <see cref="StateCompleterSet"/> to use.</param>
         /// <returns>The last previous <see cref="IAccountStateDelta"/> for the previous
-        /// <see cref="Block{T}"/>.
+        /// <see cref="Block"/>.
         /// </returns>
         private IAccountStateDelta GetPreviousBlockOutputStates(
-            Block<T> block,
-            StateCompleterSet<T> stateCompleterSet)
+            Block block,
+            StateCompleterSet stateCompleterSet)
         {
             (AccountStateGetter accountStateGetter, AccountBalanceGetter accountBalanceGetter) =
                 InitializeAccountGettersPair(block, stateCompleterSet);
@@ -594,8 +591,8 @@ namespace Libplanet.Action
         }
 
         private (AccountStateGetter, AccountBalanceGetter) InitializeAccountGettersPair(
-            Block<T> block,
-            StateCompleterSet<T> stateCompleterSet)
+            Block block,
+            StateCompleterSet stateCompleterSet)
         {
             AccountStateGetter accountStateGetter;
             AccountBalanceGetter accountBalanceGetter;
