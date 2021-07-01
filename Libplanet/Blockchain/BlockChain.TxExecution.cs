@@ -11,7 +11,7 @@ using Libplanet.Tx;
 
 namespace Libplanet.Blockchain
 {
-    public partial class BlockChain<T>
+    public partial class BlockChain
     {
         /// <summary>
         /// Makes <see cref="TxExecution"/> instances from the given <paramref name="evaluations"/>.
@@ -20,7 +20,7 @@ namespace Libplanet.Blockchain
         /// <param name="evaluations">The result of evaluated actions.</param>
         /// <returns>The corresponding <see cref="TxExecution"/>s.</returns>
         internal IEnumerable<TxExecution> MakeTxExecutions(
-            Block<T> block,
+            Block block,
             IReadOnlyList<ActionEvaluation> evaluations
         )
         {

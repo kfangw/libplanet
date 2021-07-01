@@ -51,7 +51,7 @@ namespace Libplanet.Blocks
         /// <summary>
         /// The maximum allowed length of a block in bytes.
         /// </summary>
-        /// <seealso cref="IBlockPolicy{T}.GetMaxBlockBytes(long)"/>
+        /// <seealso cref="IBlockPolicy.GetMaxBlockBytes(long)"/>
         public int MaxBlockBytesLength { get; set; }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)

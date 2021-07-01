@@ -9,19 +9,16 @@ namespace Libplanet.Blockchain
 {
     /// <summary>
     /// Predefined built-in state completers that satisfy
-    /// <see cref="FungibleAssetStateCompleter{T}"/> delegate.
+    /// <see cref="FungibleAssetStateCompleter"/> delegate.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="BlockChain{T}"/>'s type parameter.</typeparam>
-    public static class FungibleAssetStateCompleters<T>
-        where T : IAction, new()
+    public static class FungibleAssetStateCompleters
     {
         /// <summary>
         /// Recalculates and complements a block's incomplete states on the fly.
         /// Incomplete states are filled with the recalculated states and the states are
         /// permanently remained in the store.
         /// </summary>
-        public static readonly FungibleAssetStateCompleter<T> Recalculate =
+        public static readonly FungibleAssetStateCompleter Recalculate =
             (blockChain, blockHash, address, currency) =>
             {
                 blockChain.ComplementBlockStates(blockHash);
@@ -32,12 +29,12 @@ namespace Libplanet.Blockchain
         /// Rejects to complement incomplete state and throws
         /// an <see cref="IncompleteBlockStatesException"/>.
         /// </summary>
-        public static readonly FungibleAssetStateCompleter<T> Reject =
+        public static readonly FungibleAssetStateCompleter Reject =
             (chain, blockHash, address, currency) =>
                 throw new IncompleteBlockStatesException(blockHash);
 
-        internal static Func<BlockChain<T>, BlockHash, IValue> ToRawStateCompleter(
-            FungibleAssetStateCompleter<T> stateCompleter,
+        internal static Func<BlockChain, BlockHash, IValue> ToRawStateCompleter(
+            FungibleAssetStateCompleter stateCompleter,
             Address address,
             Currency currency
         ) =>

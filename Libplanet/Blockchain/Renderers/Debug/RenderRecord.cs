@@ -154,8 +154,8 @@ namespace Libplanet.Blockchain.Renderers.Debug
             protected BlockBase(
                 long index,
                 string stackTrace,
-                Block oldTip,
-                Block newTip,
+                Libplanet.Blocks.Block oldTip,
+                Libplanet.Blocks.Block newTip,
                 bool end = false
             )
                 : base(index, stackTrace)

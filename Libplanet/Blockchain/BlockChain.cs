@@ -367,13 +367,13 @@ namespace Libplanet.Blockchain
         /// </param>
         /// <returns>The genesis block mined with parameters.</returns>
         public static Block MakeGenesisBlock(
-            IEnumerable actions = null,
+            IEnumerable<IAction> actions = null,
             PrivateKey privateKey = null,
             DateTimeOffset? timestamp = null,
             IAction blockAction = null)
         {
             privateKey = privateKey ?? new PrivateKey();
-            actions = actions ?? ImmutableArray.Empty;
+            actions = actions ?? ImmutableArray<IAction>.Empty;
             IEnumerable<Transaction> transactions = new[]
             {
                 Transaction.Create(0, privateKey, null, actions, timestamp: timestamp),
@@ -410,7 +410,7 @@ namespace Libplanet.Blockchain
         /// Determines whether the <see cref="BlockChain"/> contains <see cref="Block"/>
         /// the specified <paramref name="blockHash"/>.
         /// </summary>
-        /// <param name="blockHash">The <see cref="HashDigest"/> of the <see cref="Block"/> to
+        /// <param name="blockHash">The <see cref="HashDigest{T}"/> of the <see cref="Block"/> to
         /// check if it is in the <see cref="BlockChain"/>.</param>
         /// <returns>
         /// <c>true</c> if the <see cref="BlockChain"/> contains <see cref="Block"/> with
@@ -470,7 +470,7 @@ namespace Libplanet.Blockchain
         /// <see cref="BlockChain"/> from <paramref name="offset"/>.
         /// </summary>
         /// <param name="address">An <see cref="Address"/> to get the states of.</param>
-        /// <param name="offset">The <see cref="HashDigest"/> of the block to start finding
+        /// <param name="offset">The <see cref="HashDigest{T}"/> of the block to start finding
         /// the state.  It will be The tip of the <see cref="BlockChain"/> if it is <c>null</c>.
         /// </param>
         /// <param name="stateCompleter">When the <see cref="BlockChain"/> instance does not

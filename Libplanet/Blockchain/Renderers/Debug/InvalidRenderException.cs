@@ -9,8 +9,6 @@ namespace Libplanet.Blockchain.Renderers.Debug
     /// <summary>
     /// Exception thrown by <see cref="ValidatingActionRenderer"/>.
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="ValidatingActionRenderer"/>'s type parameter.</typeparam>
     public class InvalidRenderException : Exception
     {
         /// <summary>

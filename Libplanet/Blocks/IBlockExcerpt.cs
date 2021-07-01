@@ -9,7 +9,7 @@ namespace Libplanet.Blocks
     /// The very essential metadata extracted from a block.  This purposes to determine
     /// the canonical chain.
     /// </summary>
-    /// <seealso cref="IBlockPolicy{T}.CanonicalChainComparer"/>
+    /// <seealso cref="IBlockPolicy.CanonicalChainComparer"/>
     /// <seealso cref="TotalDifficultyComparer"/>
     public interface IBlockExcerpt
     {

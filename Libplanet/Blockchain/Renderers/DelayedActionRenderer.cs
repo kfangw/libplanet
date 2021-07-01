@@ -18,8 +18,6 @@ namespace Libplanet.Blockchain.Renderers
     /// the delayed events relevant to these blocks are relayed to the decorated
     /// <see cref="IActionRenderer"/>.</para>
     /// </summary>
-    /// <typeparam name="T">An <see cref="IAction"/> type.  It should match to
-    /// <see cref="BlockChain"/>'s type parameter.</typeparam>
     /// <example>
     /// <code><![CDATA[
     /// IStore store = GetStore();
