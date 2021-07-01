@@ -46,10 +46,9 @@ namespace Libplanet.Store
         }
 
         /// <inheritdoc/>
-        public void SetStates<T>(
-            Block<T> block,
+        public void SetStates(
+            Block block,
             IImmutableDictionary<string, IValue> states)
-            where T : IAction, new()
         {
             _stateHashKeyValueStore.Set(
                 block.Hash.ToByteArray(), EvalState(block, states).ToByteArray());
@@ -77,8 +76,7 @@ namespace Libplanet.Store
         }
 
         /// <inheritdoc/>
-        public void ForkStates<T>(Guid sourceChainId, Guid destinationChainId, Block<T> branchpoint)
-            where T : IAction, new()
+        public void ForkStates(Guid sourceChainId, Guid destinationChainId, Block branchpoint)
         {
             // Do nothing.
         }
@@ -172,7 +170,7 @@ namespace Libplanet.Store
         /// <summary>
         /// Gets the state hash corresponds to <paramref name="blockHash"/>.
         /// </summary>
-        /// <param name="blockHash">The <see cref="Block{T}.Hash"/> to get state hash.</param>
+        /// <param name="blockHash">The <see cref="Block.Hash"/> to get state hash.</param>
         /// <returns>If there is a state hash corresponds to <paramref name="blockHash"/>,
         /// it will return the state hash. If not, it will return null.</returns>
         /// <exception cref="KeyNotFoundException">If there are no root hashes that correspond to
@@ -180,11 +178,10 @@ namespace Libplanet.Store
         public HashDigest<SHA256> GetRootHash(BlockHash blockHash)
             => new HashDigest<SHA256>(_stateHashKeyValueStore.Get(blockHash.ToByteArray()));
 
-        internal HashDigest<SHA256> EvalState<T>(
-            Block<T> block,
+        internal HashDigest<SHA256> EvalState(
+            Block block,
             IImmutableDictionary<string, IValue> states,
             bool rehearsal = false)
-            where T : IAction, new()
         {
             ITrie prevStatesTrie;
             var previousBlockStateHashBytes = block.PreviousHash is null
@@ -212,10 +209,9 @@ namespace Libplanet.Store
                         new HashDigest<SHA256>(
                             _stateHashKeyValueStore.Get(blockHash.ToByteArray()))));
 
-        internal void SetStates<T>(
-            Block<T> block,
+        internal void SetStates(
+            Block block,
             HashDigest<SHA256> stateRootHash)
-            where T : IAction, new()
         {
             _stateHashKeyValueStore.Set(
                 block.Hash.ToByteArray(), stateRootHash.ToByteArray());

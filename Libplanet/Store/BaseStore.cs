@@ -59,20 +59,17 @@ namespace Libplanet.Store
 
         public abstract IEnumerable<TxId> IterateTransactionIds();
 
-        public abstract Transaction<T> GetTransaction<T>(TxId txid)
-            where T : IAction, new();
+        public abstract Transaction GetTransaction(TxId txid);
 
-        public abstract void PutTransaction<T>(Transaction<T> tx)
-            where T : IAction, new();
+        public abstract void PutTransaction(Transaction tx);
 
         public abstract bool DeleteTransaction(TxId txid);
 
         /// <inheritdoc cref="IStore.IterateBlockHashes()"/>
         public abstract IEnumerable<BlockHash> IterateBlockHashes();
 
-        /// <inheritdoc cref="IStore.GetBlock{T}(BlockHash)"/>
-        public Block<T> GetBlock<T>(BlockHash blockHash)
-            where T : IAction, new()
+        /// <inheritdoc cref="IStore.GetBlock(BlockHash)"/>
+        public Block GetBlock(BlockHash blockHash)
         {
             if (GetBlockDigest(blockHash) is BlockDigest blockDigest)
             {
@@ -86,7 +83,7 @@ namespace Libplanet.Store
                     ? new HashDigest<SHA256>(blockDigest.Header.StateRootHash)
                     : (HashDigest<SHA256>?)null;
 
-                return new Block<T>(
+                return new Block(
                     index: blockDigest.Header.Index,
                     difficulty: blockDigest.Header.Difficulty,
                     totalDifficulty: blockDigest.Header.TotalDifficulty,
@@ -99,7 +96,7 @@ namespace Libplanet.Store
                         CultureInfo.InvariantCulture
                     ).ToUniversalTime(),
                     transactions: blockDigest.TxIds
-                        .Select(bytes => GetTransaction<T>(new TxId(bytes.ToArray())))
+                        .Select(bytes => GetTransaction(new TxId(bytes.ToArray())))
                         .ToImmutableArray(),
                     preEvaluationHash: preEvaluationHash,
                     stateRootHash: stateRootHash,
@@ -120,8 +117,7 @@ namespace Libplanet.Store
         public abstract BlockDigest? GetBlockDigest(BlockHash blockHash);
 
         /// <inheritdoc />
-        public abstract void PutBlock<T>(Block<T> block)
-            where T : IAction, new();
+        public abstract void PutBlock(Block block);
 
         /// <inheritdoc cref="IStore.DeleteBlock(BlockHash)"/>
         public abstract bool DeleteBlock(BlockHash blockHash);

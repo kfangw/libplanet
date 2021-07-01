@@ -33,7 +33,7 @@ namespace Libplanet.Store
             {
                 foreach (BlockHash blockHash in from.IterateIndexes(chainId))
                 {
-                    Block<NullAction> block = from.GetBlock<NullAction>(blockHash);
+                    Block block = from.GetBlock(blockHash);
                     to.PutBlock(block);
                     to.AppendIndex(chainId, blockHash);
                 }
@@ -48,7 +48,7 @@ namespace Libplanet.Store
                 from.IterateStagedTransactionIds().ToImmutableHashSet();
             foreach (TxId txid in stagedTxIds)
             {
-                to.PutTransaction(from.GetTransaction<NullAction>(txid));
+                to.PutTransaction(from.GetTransaction(txid));
             }
 
             to.StageTransactionIds(stagedTxIds);
@@ -56,28 +56,6 @@ namespace Libplanet.Store
             if (from.GetCanonicalChainId() is Guid canonId)
             {
                 to.SetCanonicalChainId(canonId);
-            }
-        }
-
-        /// <summary>
-        /// An action implementation which does nothing for filling type parameter taking of
-        /// <see cref="IAction"/>.
-        /// </summary>
-        private class NullAction : IAction
-        {
-            private IValue _value;
-
-            /// <inheritdoc/>
-            public IValue PlainValue => _value;
-
-            /// <inheritdoc/>
-            public IAccountStateDelta Execute(IActionContext context) =>
-                context.PreviousStates;
-
-            /// <inheritdoc/>
-            public void LoadPlainValue(IValue plainValue)
-            {
-                _value = plainValue;
             }
         }
     }

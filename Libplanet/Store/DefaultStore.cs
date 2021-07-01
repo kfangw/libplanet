@@ -318,11 +318,11 @@ namespace Libplanet.Store
         }
 
         /// <inheritdoc/>
-        public override Transaction<T> GetTransaction<T>(TxId txid)
+        public override Transaction GetTransaction(TxId txid)
         {
             if (_txCache.TryGetValue(txid, out object cachedTx))
             {
-                return (Transaction<T>)cachedTx;
+                return (Transaction)cachedTx;
             }
 
             UPath path = TxPath(txid);
@@ -341,13 +341,13 @@ namespace Libplanet.Store
                 return null;
             }
 
-            Transaction<T> tx = Transaction<T>.Deserialize(bytes, false);
+            Transaction tx = Transaction.Deserialize(bytes, false);
             _txCache.AddOrUpdate(txid, tx);
             return tx;
         }
 
         /// <inheritdoc/>
-        public override void PutTransaction<T>(Transaction<T> tx)
+        public override void PutTransaction(Transaction tx)
         {
             if (_txCache.ContainsKey(tx.Id))
             {
@@ -451,7 +451,7 @@ namespace Libplanet.Store
         }
 
         /// <inheritdoc/>
-        public override void PutBlock<T>(Block<T> block)
+        public override void PutBlock(Block block)
         {
             if (_blockCache.ContainsKey(block.Hash))
             {
@@ -464,7 +464,7 @@ namespace Libplanet.Store
                 return;
             }
 
-            foreach (Transaction<T> tx in block.Transactions)
+            foreach (Transaction tx in block.Transactions)
             {
                 PutTransaction(tx);
             }
@@ -665,8 +665,8 @@ namespace Libplanet.Store
         {
             // FIXME: This implementation is too inefficient.  Fortunately, this method seems
             // unused (except for unit tests).  If this is never used why should we maintain
-            // this?  This is basically only for making TransactionSet<T> class to implement
-            // IDictionary<TxId, Transaction<T>>.Count property, which is never used either.
+            // this?  This is basically only for making TransactionSet class to implement
+            // IDictionary<TxId, Transaction>.Count property, which is never used either.
             // We'd better to refactor all such things so that unnecessary APIs are gone away.
             return IterateTransactionIds().LongCount();
         }
@@ -676,8 +676,8 @@ namespace Libplanet.Store
         {
             // FIXME: This implementation is too inefficient.  Fortunately, this method seems
             // unused (except for unit tests).  If this is never used why should we maintain
-            // this?  This is basically only for making BlockSet<T> class to implement
-            // IDictionary<HashDigest<SHA256>, Block<T>>.Count property, which is never used either.
+            // this?  This is basically only for making BlockSet class to implement
+            // IDictionary<HashDigest<SHA256>, Block>.Count property, which is never used either.
             // We'd better to refactor all such things so that unnecessary APIs are gone away.
             return IterateBlockHashes().LongCount();
         }
