@@ -32,8 +32,8 @@ namespace Libplanet.Tx
         private byte[] _signature;
         private byte[] _bytes;
         private int _bytesLength;
-#pragma warning disable MEN002
 
+#pragma warning disable 1580
         /// <summary>
         /// Creates a new <see cref="Transaction"/>.
         /// <para>This constructor takes all required and only required values
@@ -42,7 +42,8 @@ namespace Libplanet.Tx
         /// this constructor is only useful when all details of
         /// a <see cref="Transaction"/> need to be manually adjusted.
         /// For the most cases, the fa&#xe7;ade factory <see
-        /// cref="Create(long, PrivateKey, BlockHash?, IEnumerable{IAction},IImmutableSet{Address}, DateTimeOffset?)"/> is more useful.</para>
+        /// cref="Create(long, PrivateKey, BlockHash?, IEnumerable{IAction},IImmutableSet{Address},
+        /// DateTimeOffset?)"/> is more useful.</para>
         /// </summary>
         /// <param name="nonce">The number of previous
         /// <see cref="Transaction"/>s committed by the <see cref="Signer"/>
@@ -104,7 +105,7 @@ namespace Libplanet.Tx
             PublicKey = publicKey ??
                         throw new ArgumentNullException(nameof(publicKey));
         }
-#pragma warning restore MEN002
+#pragma warning restore 1580
 
         /// <summary>
         /// Creates a <see cref="Transaction"/> instance from its serialization.
@@ -304,6 +305,7 @@ namespace Libplanet.Tx
             return tx;
         }
 
+ #pragma warning disable 1580
         /// <summary>
         /// A fa&#xe7;ade factory to create a new <see cref="Transaction"/>.
         /// Unlike the <see cref="Transaction(long, Address, PublicKey, BlockHash?,
@@ -394,6 +396,7 @@ namespace Libplanet.Tx
         /// is passed to <paramref name="privateKey"/> or
         /// or <paramref name="actions"/>.
         /// </exception>
+ #pragma warning restore 1580
         public static Transaction Create(
             long nonce,
             PrivateKey privateKey,

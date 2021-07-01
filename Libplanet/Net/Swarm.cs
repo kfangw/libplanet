@@ -279,7 +279,8 @@ namespace Libplanet.Net
         /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
-        /// a lot of calls to methods of <see cref="BlockChain.Renderers"/> in a short
+        /// a lot of calls to methods of
+        /// <see cref="Libplanet.Blockchain.BlockChain.Renderers"/> in a short
         /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
         /// these actions in the behind blocks use <see cref=
         /// "PreloadAsync(TimeSpan?, IProgress{PreloadState}, CancellationToken)"
@@ -316,7 +317,8 @@ namespace Libplanet.Net
         /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
-        /// a lot of calls to methods of <see cref="BlockChain.Renderers"/> in a short
+        /// a lot of calls to methods of
+        /// <see cref="Libplanet.Blockchain.BlockChain.Renderers"/> in a short
         /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
         /// these actions in the behind blocks use <see cref=
         /// "PreloadAsync(TimeSpan?, IProgress{PreloadState}, CancellationToken)"
