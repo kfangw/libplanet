@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading;
 using Bencodex;
 using Bencodex.Types;
-using Libplanet.Action;
 using Libplanet.Store.Trie;
 using Libplanet.Tx;
 

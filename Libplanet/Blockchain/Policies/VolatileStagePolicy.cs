@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Libplanet.Action;
 using Libplanet.Tx;
 
 namespace Libplanet.Blockchain.Policies

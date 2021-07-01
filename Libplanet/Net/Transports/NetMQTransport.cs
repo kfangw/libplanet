@@ -368,7 +368,7 @@ namespace Libplanet.Net.Transports
         /// <summary>
         /// Waits until this <see cref="NetMQTransport"/> instance gets started to run.
         /// </summary>
-        /// <seealso cref="Swarm{T}.WaitForRunningAsync()"/>
+        /// <seealso cref="Swarm.WaitForRunningAsync()"/>
         /// <returns>A <see cref="Task"/> completed when <see cref="Running"/>
         /// property becomes <c>true</c>.</returns>
         public Task WaitForRunningAsync() => _runningEvent.Task;

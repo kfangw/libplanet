@@ -148,7 +148,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 }
 
                 expectedUnrenderedActions.AddRange(
-                    block.Transactions.SelectMany(t => t.Actions).Cast<IAction>().Reverse());
+                    block.Transactions.SelectMany(t => t.Actions).Reverse());
                 block = store.GetBlock(block.PreviousHash ??
                     throw Error(Records, "Reorg occurred from the chain with different genesis."));
             }
@@ -158,7 +158,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
             while (!block.Equals(branchpoint))
             {
                 IEnumerable<IAction> actions =
-                    block.Transactions.SelectMany(t => t.Actions).Cast<IAction>();
+                    block.Transactions.SelectMany(t => t.Actions);
                 if (policy.BlockAction is IAction blockAction)
                 {
 #if NET472 || NET471 || NET47 || NET462 || NET461

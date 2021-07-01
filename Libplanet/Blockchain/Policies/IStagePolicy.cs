@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using Libplanet.Action;
 using Libplanet.Tx;
 
 namespace Libplanet.Blockchain.Policies

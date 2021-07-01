@@ -147,7 +147,7 @@ namespace Libplanet.Action
                 miner: NullBlock.Miner.GetValueOrDefault(),
                 signer: tx.Signer,
                 signature: tx.Signature,
-                actions: tx.Actions.Cast<IAction>().ToImmutableList(),
+                actions: tx.Actions.ToImmutableList(),
                 rehearsal: true,
                 previousBlockStatesTrie: null);
 
@@ -467,7 +467,7 @@ namespace Libplanet.Action
                 miner: block.Miner.GetValueOrDefault(),
                 signer: tx.Signer,
                 signature: tx.Signature,
-                actions: tx.Actions.Cast<IAction>().ToImmutableList(),
+                actions: tx.Actions.ToImmutableList(),
                 rehearsal: rehearsal,
                 previousBlockStatesTrie: previousBlockStatesTrie);
             foreach (var evaluation in evaluations)

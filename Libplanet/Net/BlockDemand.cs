@@ -5,7 +5,7 @@ using Libplanet.Blocks;
 namespace Libplanet.Net
 {
     /// <summary>
-    /// Struct represents <see cref="Swarm{T}"/>'s block demand status.
+    /// Struct represents <see cref="Swarm"/>'s block demand status.
     /// </summary>
     public readonly struct BlockDemand
     {

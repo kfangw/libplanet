@@ -11,7 +11,7 @@ namespace Libplanet.Net
     /// <summary>
     /// A representation of peer node.
     /// </summary>
-    /// <seealso cref="Swarm{T}"/>
+    /// <seealso cref="Swarm"/>
     [Serializable]
     [Equals]
     public class Peer : ISerializable

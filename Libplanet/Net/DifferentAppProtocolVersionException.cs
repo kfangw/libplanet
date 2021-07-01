@@ -7,7 +7,7 @@ namespace Libplanet.Net
 {
     /// <summary>
     /// The exception that is thrown when the version of the
-    /// <see cref="Message" /> that <see cref="Swarm{T}" /> received
+    /// <see cref="Message" /> that <see cref="Swarm" /> received
     /// is different.
     /// </summary>
     [Serializable]
@@ -20,9 +20,9 @@ namespace Libplanet.Net
         /// <param name="identity">The identity of the message received. Will have empty
         /// string if the message is a reply.</param>
         /// <param name="expectedVersion">The protocol version of the current
-        /// <see cref="Swarm{T}"/>.</param>
+        /// <see cref="Swarm"/>.</param>
         /// <param name="actualVersion">The protocol version of the
-        /// <see cref="Peer"/> that <see cref="Swarm{T}" /> is trying to connect
+        /// <see cref="Peer"/> that <see cref="Swarm" /> is trying to connect
         /// to.</param>
         /// <param name="message">Specifies an <see cref="Exception.Message"/>.
         /// </param>
@@ -49,13 +49,13 @@ namespace Libplanet.Net
         public byte[] Identity { get; }
 
         /// <summary>
-        /// The protocol version of the current <see cref="Swarm{T}"/>.
+        /// The protocol version of the current <see cref="Swarm"/>.
         /// </summary>
         public AppProtocolVersion ExpectedVersion { get; }
 
         /// <summary>
         /// The protocol version of the <see cref="Peer"/> that the
-        /// <see cref="Swarm{T}" /> is trying to connect to.
+        /// <see cref="Swarm" /> is trying to connect to.
         /// </summary>
         public AppProtocolVersion ActualVersion { get; }
     }

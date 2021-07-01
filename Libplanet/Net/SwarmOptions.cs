@@ -12,7 +12,7 @@ namespace Libplanet.Net
     public class SwarmOptions
     {
         /// <summary>
-        /// The maximum timeout used in <see cref="Swarm{T}"/>.
+        /// The maximum timeout used in <see cref="Swarm"/>.
         /// </summary>
         public TimeSpan MaxTimeout { get; set; } = TimeSpan.FromSeconds(150);
 
@@ -22,7 +22,7 @@ namespace Libplanet.Net
         public TimeSpan BlockHashRecvTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// The base timeout used to receive <see cref="Block{T}"/> from other peers.
+        /// The base timeout used to receive <see cref="Block"/> from other peers.
         /// </summary>
         public TimeSpan BlockRecvTimeout { get; set; } = TimeSpan.FromSeconds(15);
 
@@ -71,7 +71,7 @@ namespace Libplanet.Net
 
         /// <summary>
         /// The threshold for detecting branchpoint when block synchronization.
-        /// If the branch point is outside threshold from the <see cref="BlockChain{T}.Tip" />,
+        /// If the branch point is outside threshold from the <see cref="BlockChain.Tip" />,
         /// using an approximated value.
         /// </summary>
         public int BranchpointThreshold { get; set; } = 10;

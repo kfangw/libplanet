@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using Libplanet.Action;
 using Libplanet.Blocks;
 using Serilog;
 using Serilog.Events;

@@ -214,6 +214,7 @@ namespace Libplanet.Blockchain
         /// </summary>
         private event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
+#pragma warning disable MEN002
         /// <summary>
         /// The list of registered renderers listening the state changes.
         /// </summary>
@@ -225,7 +226,7 @@ namespace Libplanet.Blockchain
         /// constructor instead.
         /// </remarks>
         public IImmutableList<IRenderer> Renderers { get; }
-
+#pragma warning restore MEN002
         /// <summary>
         /// A filtered list, from <see cref="Renderers"/>, which contains only <see
         /// cref="IActionRenderer"/> instances.

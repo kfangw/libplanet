@@ -18,7 +18,7 @@ namespace Libplanet.Tx
     /// </summary>
     /// <see cref="IAction"/>, and uses it for this type parameter.
     /// This type parameter is aligned with <see cref="Blocks.Block"/>'s
-    /// and <see cref="Blockchain.BlockChain{T}"/>'s type parameters.
+    /// and <see cref="Blockchain.BlockChain"/>'s type parameters.
     /// <seealso cref="IAction"/>
     /// <seealso cref="PolymorphicAction{T}"/>
     public sealed class Transaction : IEquatable<Transaction>
@@ -32,6 +32,7 @@ namespace Libplanet.Tx
         private byte[] _signature;
         private byte[] _bytes;
         private int _bytesLength;
+#pragma warning disable MEN002
 
         /// <summary>
         /// Creates a new <see cref="Transaction"/>.
@@ -41,8 +42,7 @@ namespace Libplanet.Tx
         /// this constructor is only useful when all details of
         /// a <see cref="Transaction"/> need to be manually adjusted.
         /// For the most cases, the fa&#xe7;ade factory <see
-        /// cref="Create(long, PrivateKey, BlockHash?, IEnumerable{IAction},
-        /// IImmutableSet{Address}, DateTimeOffset?)"/> is more useful.</para>
+        /// cref="Create(long, PrivateKey, BlockHash?, IEnumerable{IAction},IImmutableSet{Address}, DateTimeOffset?)"/> is more useful.</para>
         /// </summary>
         /// <param name="nonce">The number of previous
         /// <see cref="Transaction"/>s committed by the <see cref="Signer"/>
@@ -104,6 +104,7 @@ namespace Libplanet.Tx
             PublicKey = publicKey ??
                         throw new ArgumentNullException(nameof(publicKey));
         }
+#pragma warning restore MEN002
 
         /// <summary>
         /// Creates a <see cref="Transaction"/> instance from its serialization.
@@ -306,7 +307,7 @@ namespace Libplanet.Tx
         /// <summary>
         /// A fa&#xe7;ade factory to create a new <see cref="Transaction"/>.
         /// Unlike the <see cref="Transaction(long, Address, PublicKey, BlockHash?,
-        /// IImmutableSet{Address}, DateTimeOffset, IEnumerable{T}, byte[])"/>
+        /// IImmutableSet{Address}, DateTimeOffset, IEnumerable{IAction}, byte[])"/>
         /// constructor, it automatically fills the following values from:
         /// <list type="table">
         /// <listheader>

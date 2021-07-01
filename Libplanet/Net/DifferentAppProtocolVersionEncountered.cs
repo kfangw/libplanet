@@ -1,7 +1,7 @@
 namespace Libplanet.Net
 {
     /// <summary>
-    /// A delegate called back when a <see cref="Swarm{T}"/> encounters
+    /// A delegate called back when a <see cref="Swarm"/> encounters
     /// a peer with different <see cref="AppProtocolVersion"/> in the network.
     /// </summary>
     /// <param name="peer">An encountered peer with a different <see cref="AppProtocolVersion"/>.

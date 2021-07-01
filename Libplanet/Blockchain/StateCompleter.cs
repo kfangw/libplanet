@@ -1,6 +1,5 @@
 #nullable enable
 using Bencodex.Types;
-using Libplanet.Action;
 using Libplanet.Blocks;
 
 namespace Libplanet.Blockchain

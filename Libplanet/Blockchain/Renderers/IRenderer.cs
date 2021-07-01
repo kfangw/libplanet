@@ -1,5 +1,4 @@
 #nullable enable
-using Libplanet.Action;
 using Libplanet.Blocks;
 
 namespace Libplanet.Blockchain.Renderers

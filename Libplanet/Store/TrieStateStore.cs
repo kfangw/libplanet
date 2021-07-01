@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Bencodex.Types;
-using Libplanet.Action;
 using Libplanet.Blocks;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;

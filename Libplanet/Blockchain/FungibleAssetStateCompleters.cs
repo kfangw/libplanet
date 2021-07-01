@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using Bencodex.Types;
-using Libplanet.Action;
 using Libplanet.Assets;
 using Libplanet.Blocks;
 
