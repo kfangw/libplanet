@@ -28,6 +28,58 @@ namespace Libplanet.Extensions.Cocona.Commands
                 }.ToImmutableSortedDictionary();
 
         [Command(Description = "Build an index for transaction id and block hash.")]
+        public void Nonces(
+            [Argument("STORE", Description = StoreArgumentDescription)]
+            string home
+        )
+        {
+            IStore store = LoadStoreFromUri(home);
+            var mydict = new Dictionary<Address, long>();
+            if (!(store.GetCanonicalChainId() is { } chainId))
+            {
+                throw Utils.Error("Cannot find the main branch of the blockchain.");
+            }
+
+            foreach (var blockHash in store.IterateIndexes(chainId))
+            {
+                var block = store.GetBlock<Utils.DummyAction>(blockHash);
+                Console.WriteLine(
+                    $"Processing H:{blockHash},I:{block.Index},Txs:{block.Transactions.Count}");
+                foreach (var tx in block.Transactions)
+                {
+                    if (mydict.ContainsKey(tx.Signer))
+                    {
+                        if (mydict[tx.Signer] + 1 == tx.Nonce)
+                        {
+                            mydict[tx.Signer] = tx.Nonce;
+                        }
+                        else
+                        {
+                            throw Utils.Error(
+                                $"{tx.Signer} expecting:{mydict[tx.Signer]}" +
+                                $"got:{tx.Nonce} Tx:{tx.Id}");
+                        }
+                    }
+                    else
+                    {
+                        if (tx.Nonce == 0)
+                        {
+                            mydict[tx.Signer] = tx.Nonce;
+                        }
+                        else
+                        {
+                            throw Utils.Error(
+                                $"{tx.Signer} expecting:0 " +
+                                $"got:{tx.Nonce} Tx:{tx.Id}");
+                        }
+                    }
+                }
+            }
+
+            (store as IDisposable)?.Dispose();
+        }
+
+        [Command(Description = "Build an index for transaction id and block hash.")]
         public void BuildIndexTxBlock(
             [Argument("STORE", Description = StoreArgumentDescription)]
             string home,
@@ -73,7 +125,7 @@ namespace Libplanet.Extensions.Cocona.Commands
         {
             IStore store = LoadStoreFromUri(home);
             var txId = new TxId(ByteUtil.ParseHex(strTxId));
-            if (!(store.GetFirstTxIdBlockHashIndex(txId) is { } ))
+            if (!(store.GetFirstTxIdBlockHashIndex(txId) is { }))
             {
                 throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
             }
