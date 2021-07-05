@@ -51,6 +51,8 @@ namespace Libplanet.Action
         private readonly BalanceGetter<T> _balanceGetter;
         private readonly Func<BlockHash, ITrie>? _trieGetter;
 
+        private readonly ActionExecutor? _actionExecutor;
+
         /// <summary>
         /// Creates a new <see cref="ActionEvaluator{T}"/>.
         /// </summary>
@@ -63,16 +65,19 @@ namespace Libplanet.Action
         /// the balance for a provided <see cref="Address"/>.</param>
         /// <param name="trieGetter">The function to retrieve a trie for
         /// a provided <see cref="BlockHash"/>.</param>
+        /// <param name="actionExecutor">TODO: blah.</param>
         public ActionEvaluator(
             IAction? policyBlockAction,
             StateGetter<T> stateGetter,
             BalanceGetter<T> balanceGetter,
-            Func<BlockHash, ITrie>? trieGetter)
+            Func<BlockHash, ITrie>? trieGetter,
+            ActionExecutor? actionExecutor = null)
         {
             _policyBlockAction = policyBlockAction;
             _stateGetter = stateGetter;
             _balanceGetter = balanceGetter;
             _trieGetter = trieGetter;
+            _actionExecutor = actionExecutor;
         }
 
         /// <summary>

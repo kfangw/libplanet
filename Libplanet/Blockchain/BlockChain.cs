@@ -29,7 +29,8 @@ namespace Libplanet.Blockchain
     /// information.
     /// <para>In order to watch its state changes, implement <see cref="IRenderer{T}"/>
     /// interface and pass it to the <see cref="BlockChain{T}(IBlockPolicy{T}, IStagePolicy{T},
-    /// IStore, IStateStore, Block{T}, IEnumerable{IRenderer{T}})"/> constructor.</para>
+    /// IStore, IStateStore, Block{T}, IEnumerable{IRenderer{T}}, ActionExecutor)"/> constructor.
+    /// </para>
     /// </summary>
     /// <remarks>This object is guaranteed that it has at least one block, since it takes a genesis
     /// block when it's instantiated.</remarks>
@@ -79,6 +80,7 @@ namespace Libplanet.Blockchain
         /// by unsuccessful transactions too; see also <see cref="AtomicActionRenderer{T}"/> for
         /// workaround.</param>
         /// <param name="stateStore"><see cref="IStateStore"/> to store states.</param>
+        /// <param name="actionExecutor">TODO: blah.</param>
         /// <exception cref="InvalidGenesisBlockException">Thrown when the <paramref name="store"/>
         /// has a genesis block and it does not match to what the network expects
         /// (i.e., <paramref name="genesisBlock"/>).</exception>
@@ -88,7 +90,8 @@ namespace Libplanet.Blockchain
             IStore store,
             IStateStore stateStore,
             Block<T> genesisBlock,
-            IEnumerable<IRenderer<T>> renderers = null
+            IEnumerable<IRenderer<T>> renderers = null,
+            ActionExecutor actionExecutor = null
         )
             : this(
                 policy,
@@ -97,7 +100,8 @@ namespace Libplanet.Blockchain
                 stateStore,
                 store.GetCanonicalChainId() ?? Guid.NewGuid(),
                 genesisBlock,
-                renderers
+                renderers,
+                actionExecutor
             )
         {
         }
@@ -109,7 +113,8 @@ namespace Libplanet.Blockchain
             IStateStore stateStore,
             Guid id,
             Block<T> genesisBlock,
-            IEnumerable<IRenderer<T>> renderers
+            IEnumerable<IRenderer<T>> renderers,
+            ActionExecutor actionExecutor = null
         )
             : this(
                 policy,
@@ -119,7 +124,8 @@ namespace Libplanet.Blockchain
                 id,
                 genesisBlock,
                 false,
-                renderers
+                renderers,
+                actionExecutor
             )
         {
         }
@@ -132,7 +138,8 @@ namespace Libplanet.Blockchain
             Guid id,
             Block<T> genesisBlock,
             bool inFork,
-            IEnumerable<IRenderer<T>> renderers
+            IEnumerable<IRenderer<T>> renderers,
+            ActionExecutor executor = null
         )
         {
             Id = id;
@@ -165,11 +172,26 @@ namespace Libplanet.Blockchain
             Func<BlockHash, ITrie> trieGetter = StateStore is TrieStateStore trieStateStore
                 ? h => trieStateStore.GetTrie(h)
                 : (Func<BlockHash, ITrie>)null;
+            if (executor is { })
+            {
+                Executor = executor;
+            }
+            else
+            {
+                Executor = (context, action) =>
+                {
+                    IAction newAction = new T();
+                    newAction.LoadPlainValue(action.PlainValue);
+                    return newAction.Execute(context);
+                };
+            }
+
             ActionEvaluator = new ActionEvaluator<T>(
                 policy.BlockAction,
                 GetState,
                 GetBalance,
-                trieGetter);
+                trieGetter,
+                Executor);
 
             if (Count == 0)
             {
@@ -223,7 +245,7 @@ namespace Libplanet.Blockchain
         /// Since this value is immutable, renderers cannot be registered after once a <see
         /// cref="BlockChain{T}"/> object is instantiated; use <c>renderers</c> option of <see cref=
         /// "BlockChain{T}(IBlockPolicy{T}, IStagePolicy{T}, IStore, IStateStore, Block{T},
-        /// IEnumerable{IRenderer{T}})"/>
+        /// IEnumerable{IRenderer{T}}, ActionExecutor)"/>
         /// constructor instead.
         /// </remarks>
         public IImmutableList<IRenderer<T>> Renderers { get; }
@@ -233,6 +255,8 @@ namespace Libplanet.Blockchain
         /// cref="IActionRenderer{T}"/> instances.
         /// </summary>
         public IImmutableList<IActionRenderer<T>> ActionRenderers { get; }
+
+        public ActionExecutor Executor { get; }
 
         /// <summary>
         /// The block and blockchain policy.
@@ -1633,7 +1657,15 @@ namespace Libplanet.Blockchain
                 ? Renderers
                 : Enumerable.Empty<IRenderer<T>>();
             var forked = new BlockChain<T>(
-                Policy, StagePolicy, Store, StateStore, Guid.NewGuid(), Genesis, true, renderers);
+                Policy,
+                StagePolicy,
+                Store,
+                StateStore,
+                Guid.NewGuid(),
+                Genesis,
+                true,
+                renderers,
+                Executor);
             Guid forkedId = forked.Id;
             _logger.Debug(
                 "Trying to fork chain at {branchPoint}" +

@@ -73,12 +73,21 @@ namespace Libplanet.Tests.Action
             var stateRootBlock = TestUtils.MineGenesis(
                 timestamp: timestamp,
                 transactions: txs).AttachStateRootHash(stateStore, null);
+
+            IAccountStateDelta MyActionExecutor(IActionContext context, IAction action)
+            {
+                IAction tobeAction = new DumbAction();
+                tobeAction.LoadPlainValue(action.PlainValue);
+                return tobeAction.Execute(context);
+            }
+
             var actionEvaluator =
                 new ActionEvaluator<RandomAction>(
                     policyBlockAction: null,
                     stateGetter: ActionEvaluator<RandomAction>.NullStateGetter,
                     balanceGetter: ActionEvaluator<RandomAction>.NullBalanceGetter,
-                    trieGetter: null);
+                    trieGetter: null,
+                    actionExecutor: MyActionExecutor);
             var generatedRandomNumbers = new List<int>();
 
             Assert.NotEqual(stateRootBlock.Hash, noStateRootBlock.Hash);

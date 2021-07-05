@@ -543,7 +543,8 @@ namespace Libplanet.Net
                     BlockChain.StateStore,
                     Guid.NewGuid(),
                     BlockChain.Genesis,
-                    Enumerable.Empty<IRenderer<T>>());
+                    Enumerable.Empty<IRenderer<T>>(),
+                    BlockChain.Executor);
             Guid wId = workspace.Id;
             IStore wStore = workspace.Store;
             var chainIds = new HashSet<Guid>
