@@ -51,7 +51,7 @@ namespace Libplanet.Action
         private readonly BalanceGetter<T> _balanceGetter;
         private readonly Func<BlockHash, ITrie>? _trieGetter;
 
-        private readonly ActionExecutor? _actionExecutor;
+        private readonly ActionExecutor _actionExecutor;
 
         /// <summary>
         /// Creates a new <see cref="ActionEvaluator{T}"/>.
@@ -77,7 +77,14 @@ namespace Libplanet.Action
             _stateGetter = stateGetter;
             _balanceGetter = balanceGetter;
             _trieGetter = trieGetter;
-            _actionExecutor = actionExecutor;
+            if (actionExecutor is { })
+            {
+                _actionExecutor = actionExecutor;
+            }
+            else
+            {
+                _actionExecutor = (context, action) => action.Execute(context);
+            }
         }
 
         /// <summary>
@@ -156,6 +163,7 @@ namespace Libplanet.Action
                 signer: tx.Signer,
                 signature: tx.Signature,
                 actions: tx.Actions.Cast<IAction>().ToImmutableList(),
+                (IActionContext context, IAction action) => action.Execute(context),
                 rehearsal: true,
                 previousBlockStatesTrie: null);
 
@@ -188,6 +196,7 @@ namespace Libplanet.Action
         /// <param name="signature"><see cref="Transaction{T}"/> signature used to generate random
         /// seeds.</param>
         /// <param name="actions">Actions to evaluate.</param>
+        /// <param name="actionExecutor">TODO:.</param>
         /// <param name="rehearsal">Pass <c>true</c> if it is intended
         /// to be dry-run (i.e., the returned result will be never used).
         /// The default value is <c>false</c>.</param>
@@ -225,6 +234,7 @@ namespace Libplanet.Action
             Address signer,
             byte[] signature,
             IImmutableList<IAction> actions,
+            ActionExecutor actionExecutor,
             bool rehearsal = false,
             ITrie? previousBlockStatesTrie = null,
             bool blockAction = false)
@@ -264,7 +274,7 @@ namespace Libplanet.Action
                 try
                 {
                     DateTimeOffset actionExecutionStarted = DateTimeOffset.Now;
-                    nextStates = action.Execute(context);
+                    nextStates = actionExecutor(context, action);
                     TimeSpan spent = DateTimeOffset.Now - actionExecutionStarted;
                     _logger.Verbose($"{action} execution spent {spent.TotalMilliseconds} ms.");
                 }
@@ -476,6 +486,7 @@ namespace Libplanet.Action
                 signer: tx.Signer,
                 signature: tx.Signature,
                 actions: tx.Actions.Cast<IAction>().ToImmutableList(),
+                actionExecutor: _actionExecutor,
                 rehearsal: rehearsal,
                 previousBlockStatesTrie: previousBlockStatesTrie);
             foreach (var evaluation in evaluations)
@@ -572,6 +583,7 @@ namespace Libplanet.Action
                 signer: block.Miner.GetValueOrDefault(),
                 signature: Array.Empty<byte>(),
                 actions: new[] { _policyBlockAction }.ToImmutableList(),
+                _actionExecutor,
                 rehearsal: false,
                 previousBlockStatesTrie: previousBlockStatesTrie,
                 blockAction: true).Single();

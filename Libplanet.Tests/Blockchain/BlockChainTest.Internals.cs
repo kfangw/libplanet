@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Bencodex.Types;
+using Libplanet.Action;
 using Libplanet.Assets;
 using Libplanet.Blockchain;
+using Libplanet.Blockchain.Renderers;
 using Libplanet.Blocks;
 using Libplanet.Crypto;
 using Libplanet.Tests.Common.Action;
@@ -237,6 +239,62 @@ namespace Libplanet.Tests.Blockchain
             AssertTxFailuresEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2));
             AssertTxFailuresEqual(inputC, getTxExecution(_fx.Hash2, _fx.TxId1));
             Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
+        }
+
+        [Fact]
+        public void ExecuteActionsWithExecutor()
+        {
+            (var addresses, Transaction<DumbAction>[] txs) =
+                MakeFixturesForAppendTests();
+            var blockChain = new BlockChain<DumbAction>(
+                _policy,
+                _stagePolicy,
+                _fx.Store,
+                _fx.StateStore,
+                _fx.GenesisBlock,
+                renderers: new[] { new LoggedActionRenderer<DumbAction>(_renderer, Log.Logger) },
+                actionExecutor: (IActionContext context, IAction action) =>
+                {
+                    var newAction = new Attack();
+                    newAction.LoadPlainValue(action.PlainValue);
+                    return newAction.Execute(context);
+                }
+            );
+            var genesis = blockChain.Genesis;
+
+            Block<DumbAction> block1 = TestUtils.MineNext(
+                genesis,
+                txs,
+                difficulty: blockChain.Policy.GetNextBlockDifficulty(blockChain)
+            ).AttachStateRootHash(_fx.StateStore, _policy.BlockAction);
+
+            blockChain.Append(
+                block1,
+                DateTimeOffset.UtcNow,
+                evaluateActions: false,
+                renderBlocks: true,
+                renderActions: false
+            );
+
+            var minerAddress = genesis.Miner.GetValueOrDefault();
+
+            var expectedStates = new Dictionary<Address, IValue>
+            {
+                { addresses[0], (Text)"foo" },
+                { addresses[1], (Text)"bar" },
+                { addresses[2], (Text)"baz" },
+                { addresses[3], (Text)"qux" },
+                { minerAddress, (Integer)2 },
+                { MinerReward.RewardRecordAddress, (Text)$"{minerAddress},{minerAddress}" },
+            };
+
+            blockChain.ExecuteActions(block1);
+            foreach (KeyValuePair<Address, IValue> pair in expectedStates)
+            {
+                Assert.Equal(
+                    pair.Value,
+                    _fx.StateStore.GetState(KeyConverters.ToStateKey(pair.Key), block1.Hash));
+            }
         }
     }
 }

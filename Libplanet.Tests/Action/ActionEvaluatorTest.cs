@@ -814,6 +814,7 @@ namespace Libplanet.Tests.Action
                 signer: txA.Signer,
                 signature: txA.Signature,
                 actions: txA.Actions.ToImmutableArray<IAction>(),
+                actionExecutor: (context, action) => action.Execute(context),
                 rehearsal: rehearsal,
                 previousBlockStatesTrie: fx.GetTrie(blockA.PreviousHash),
                 blockAction: false).ToArray();
@@ -863,6 +864,7 @@ namespace Libplanet.Tests.Action
                 signer: txB.Signer,
                 signature: txB.Signature,
                 actions: txB.Actions.ToImmutableArray<IAction>(),
+                actionExecutor: (context, action) => action.Execute(context),
                 rehearsal: rehearsal,
                 previousBlockStatesTrie: fx.GetTrie(blockB.PreviousHash),
                 blockAction: false).ToArray();
