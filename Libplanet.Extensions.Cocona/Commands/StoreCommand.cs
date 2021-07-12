@@ -90,42 +90,6 @@ namespace Libplanet.Extensions.Cocona.Commands
         }
 
         [Command(Description = "Build an index for transaction id and block hash.")]
-        public void Accounts(
-            [Argument("STORE", Description = StoreArgumentDescription)]
-            string home,
-            [Argument("OFFSET", Description = "block index")]
-            int offset,
-            [Argument("ADDR", Description = "block index")]
-            string addrStr
-        )
-        {
-            IStore store = LoadStoreFromUri(home);
-            var mydict = new Dictionary<Address, long>();
-            if (!(store.GetCanonicalChainId() is { } chainId))
-            {
-                throw Utils.Error("Cannot find the main branch of the blockchain.");
-            }
-
-            var addr = new Address(ByteUtil.ParseHex(addrStr));
-
-            foreach (var blockHash in store.IterateIndexes(chainId, offset))
-            {
-                var block = store.GetBlock<Utils.DummyAction>(blockHash);
-                foreach (var tx in block.Transactions)
-                {
-                    if (tx.Signer.Equals(addr))
-                    {
-                        Console.Write(
-                            $"Processing H:{blockHash},I:{block.Index},");
-                        Console.WriteLine($"Tx:{tx.Id}, Nonce:{tx.Nonce}");
-                    }
-                }
-            }
-
-            (store as IDisposable)?.Dispose();
-        }
-
-        [Command(Description = "Build an index for transaction id and block hash.")]
         public void BuildIndexTxBlock(
             [Argument("STORE", Description = StoreArgumentDescription)]
             string home,
@@ -171,7 +135,7 @@ namespace Libplanet.Extensions.Cocona.Commands
         {
             IStore store = LoadStoreFromUri(home);
             var txId = new TxId(ByteUtil.ParseHex(strTxId));
-            if (!(store.GetFirstTxIdBlockHashIndex(txId) is { }))
+            if (!(store.GetFirstTxIdBlockHashIndex(txId) is { } ))
             {
                 throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
             }
