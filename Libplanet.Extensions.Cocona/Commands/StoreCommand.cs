@@ -27,10 +27,76 @@ namespace Libplanet.Extensions.Cocona.Commands
                     ["monorocksdb"] = storePath => new MonoRocksDBStore(storePath),
                 }.ToImmutableSortedDictionary();
 
-        [Command(Description = "Build an index for transaction id and block hash.")]
+        [Command(Description = "Find missing nonces.")]
         public void Nonces(
             [Argument("STORE", Description = StoreArgumentDescription)]
-            string home
+            string home,
+            [Argument("OFFSET", Description = "block index")]
+            int offset,
+            [Argument("LIMIT", Description = "block index")]
+            int limit
+        )
+        {
+            IStore store = LoadStoreFromUri(home);
+            var signerNonceDict = new Dictionary<Address, long>();
+            var missingNonceList = new List<string>();
+            if (!(store.GetCanonicalChainId() is { } chainId))
+            {
+                throw Utils.Error("Cannot find the main branch of the blockchain.");
+            }
+
+            foreach (var blockHash in store.IterateIndexes(chainId, offset, limit))
+            {
+                var block = store.GetBlock<Utils.DummyAction>(blockHash);
+                Console.WriteLine(
+                    $"Processing H:{blockHash},I:{block.Index},Txs:{block.Transactions.Count}");
+                foreach (var tx in block.Transactions)
+                {
+                    if (signerNonceDict.ContainsKey(tx.Signer))
+                    {
+                        if (signerNonceDict[tx.Signer] + 1 != tx.Nonce)
+                        {
+                            missingNonceList.Add(
+                                $"BI:{block.Index} BH:{blockHash}" +
+                                $" S:{tx.Signer} TX:{tx.Id}" +
+                                $" EN:{signerNonceDict[tx.Signer] + 1} GN:{tx.Nonce}");
+                        }
+                    }
+
+                    // The signer never seen before.
+                    else
+                    {
+                        // begin from genesis, hence tx should start with nonce 0.
+                        if (offset == 0 && tx.Nonce != 0)
+                        {
+                            missingNonceList.Add(
+                                $"BI:{block.Index} BH:{blockHash}" +
+                                $" S:{tx.Signer} TX:{tx.Id}" +
+                                $" EN:{signerNonceDict[tx.Signer] + 1} GN:{tx.Nonce}");
+                        }
+                    }
+
+                    // Update the nonce for signer regardless of error.
+                    signerNonceDict[tx.Signer] = tx.Nonce;
+                }
+            }
+
+            foreach (var er in missingNonceList)
+            {
+                Console.WriteLine(er);
+            }
+
+            (store as IDisposable)?.Dispose();
+        }
+
+        [Command(Description = "Build an index for transaction id and block hash.")]
+        public void Accounts(
+            [Argument("STORE", Description = StoreArgumentDescription)]
+            string home,
+            [Argument("OFFSET", Description = "block index")]
+            int offset,
+            [Argument("ADDR", Description = "block index")]
+            string addrStr
         )
         {
             IStore store = LoadStoreFromUri(home);
@@ -40,38 +106,18 @@ namespace Libplanet.Extensions.Cocona.Commands
                 throw Utils.Error("Cannot find the main branch of the blockchain.");
             }
 
-            foreach (var blockHash in store.IterateIndexes(chainId))
+            var addr = new Address(ByteUtil.ParseHex(addrStr));
+
+            foreach (var blockHash in store.IterateIndexes(chainId, offset))
             {
                 var block = store.GetBlock<Utils.DummyAction>(blockHash);
-                Console.WriteLine(
-                    $"Processing H:{blockHash},I:{block.Index},Txs:{block.Transactions.Count}");
                 foreach (var tx in block.Transactions)
                 {
-                    if (mydict.ContainsKey(tx.Signer))
+                    if (tx.Signer.Equals(addr))
                     {
-                        if (mydict[tx.Signer] + 1 == tx.Nonce)
-                        {
-                            mydict[tx.Signer] = tx.Nonce;
-                        }
-                        else
-                        {
-                            throw Utils.Error(
-                                $"{tx.Signer} expecting:{mydict[tx.Signer]}" +
-                                $"got:{tx.Nonce} Tx:{tx.Id}");
-                        }
-                    }
-                    else
-                    {
-                        if (tx.Nonce == 0)
-                        {
-                            mydict[tx.Signer] = tx.Nonce;
-                        }
-                        else
-                        {
-                            throw Utils.Error(
-                                $"{tx.Signer} expecting:0 " +
-                                $"got:{tx.Nonce} Tx:{tx.Id}");
-                        }
+                        Console.Write(
+                            $"Processing H:{blockHash},I:{block.Index},");
+                        Console.WriteLine($"Tx:{tx.Id}, Nonce:{tx.Nonce}");
                     }
                 }
             }
