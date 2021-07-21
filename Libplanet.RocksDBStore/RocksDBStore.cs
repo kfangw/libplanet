@@ -161,11 +161,7 @@ namespace Libplanet.RocksDBStore
             _txExecutionDb =
                 RocksDBUtils.OpenRocksDb(_options, RocksDbPath(TxExecutionDbName));
 
-            // When opening a DB in a read-write mode, you need to specify all Column Families that
-            // currently exist in a DB. https://github.com/facebook/rocksdb/wiki/Column-Families
-            var chainDbColumnFamilies = GetColumnFamilies(_options, ChainDbName);
-            _chainDb = RocksDBUtils.OpenRocksDb(
-                _options, RocksDbPath(ChainDbName), chainDbColumnFamilies);
+            _chainDb = RocksDBUtils.OpenRocksDb(_options, RocksDbPath(ChainDbName));
 
             _rwTxLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
             _rwBlockLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
@@ -348,7 +344,6 @@ namespace Libplanet.RocksDBStore
                     IndexCountKey(chainId),
                     RocksDBStoreBitConverter.GetBytes(index + 1)
                 );
-                writeBatch.Put(ChainIdKey(chainId), chainId.ToByteArray());
 
                 _chainDb.Write(writeBatch);
             }
@@ -400,6 +395,7 @@ namespace Libplanet.RocksDBStore
                 IndexCountKey(destinationChainId),
                 RocksDBStoreBitConverter.GetBytes(bpIndex + 1)
             );
+            _chainDb.Put(ChainIdKey(destinationChainId), destinationChainId.ToByteArray());
             AddFork(sourceChainId, destinationChainId);
         }
 
@@ -901,7 +897,6 @@ namespace Libplanet.RocksDBStore
                 byte[] bytes = RocksDBStoreBitConverter.GetBytes(nextNonce);
 
                 _chainDb.Put(key, bytes);
-                _chainDb.Put(ChainIdKey(chainId), chainId.ToByteArray());
             }
             catch (Exception e)
             {
@@ -1026,29 +1021,6 @@ namespace Libplanet.RocksDBStore
             {
                 yield return it;
             }
-        }
-
-        private ColumnFamilies GetColumnFamilies(DbOptions options, string dbName)
-        {
-            var dbPath = Path.Combine(_path, dbName);
-            var columnFamilies = new ColumnFamilies();
-            List<string> listColumnFamilies;
-
-            try
-            {
-                listColumnFamilies = RocksDb.ListColumnFamilies(options, dbPath).ToList();
-            }
-            catch (RocksDbException)
-            {
-                listColumnFamilies = new List<string>();
-            }
-
-            foreach (string name in listColumnFamilies)
-            {
-                columnFamilies.Add(name, _options);
-            }
-
-            return columnFamilies;
         }
 
         private string TxDbPath(string dbName) =>
