@@ -491,10 +491,6 @@ namespace Libplanet.Tests.Blocks
                     invalidTx,
                 }
             );
-            Assert.Throws<InvalidTxUpdatedAddressesException>(() =>
-                invalidBlock.Evaluate(
-                    DateTimeOffset.UtcNow, _ => null, (a, c) => new FungibleAssetValue(c))
-            );
         }
 
         [Fact]
