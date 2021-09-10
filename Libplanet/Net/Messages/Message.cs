@@ -107,6 +107,11 @@ namespace Libplanet.Net.Messages
             /// value of the message.
             /// </summary>
             DifferentVersion = 0x30,
+
+            /// <summary>
+            /// Consensus New Round Message.
+            /// </summary>
+            ConsensusNewRound = 0x40,
         }
 
         private enum MessageFrame

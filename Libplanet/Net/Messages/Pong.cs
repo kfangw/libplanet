@@ -3,7 +3,7 @@ using NetMQ;
 
 namespace Libplanet.Net.Messages
 {
-    internal class Pong : Message
+    public class Pong : Message
     {
         public Pong()
         {

@@ -3,7 +3,7 @@ using NetMQ;
 
 namespace Libplanet.Net.Messages
 {
-    internal class Ping : Message
+    public class Ping : Message
     {
         public Ping()
         {
