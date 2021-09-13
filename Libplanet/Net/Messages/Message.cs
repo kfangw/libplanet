@@ -112,6 +112,11 @@ namespace Libplanet.Net.Messages
             /// Consensus New Round Message.
             /// </summary>
             ConsensusNewRound = 0x40,
+
+            /// <summary>
+            /// Consensus New Round Message.
+            /// </summary>
+            ConsensusAck = 0x41,
         }
 
         private enum MessageFrame
@@ -292,6 +297,8 @@ namespace Libplanet.Net.Messages
                 { MessageType.GetChainStatus, typeof(GetChainStatus) },
                 { MessageType.ChainStatus, typeof(ChainStatus) },
                 { MessageType.DifferentVersion, typeof(DifferentVersion) },
+                { MessageType.ConsensusNewRound, typeof(NewRoundMessage) },
+                { MessageType.ConsensusAck, typeof(AckForTest) },
             };
 
             if (!types.TryGetValue(rawType, out Type type))
